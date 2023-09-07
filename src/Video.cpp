@@ -71,21 +71,21 @@ static const uint8_t vga_gfxpal[2][2][4] = {
 	}
 };
 
-
-#define VGA_RAMBANK_SIZE					65536
-#define VGA_FRAMEBUFFER_WIDTH			800 //1024
-#define VGA_FRAMEBUFFER_HEIGHT		800 //1024
-#define VGA_FRAMEBUFFER_STRIDE		VGA_FRAMEBUFFER_WIDTH * 4 //sizeof(uint32_t)
-#define VGA_FRAMEBUFFER_SIZE			VGA_FRAMEBUFFER_WIDTH * VGA_FRAMEBUFFER_HEIGHT
-
+#if defined(ARDUINO)
+uint16_t *vga_framebuffer;
+#else
 //static uint32_t vga_framebuffer[1024][1024];
-uint32_t vga_framebuffer[VGA_FRAMEBUFFER_WIDTH][VGA_FRAMEBUFFER_HEIGHT] = {0};
+uint32_t vga_framebuffer[VGA_FRAMEBUFFER_HEIGHT][VGA_FRAMEBUFFER_WIDTH] = {0};
+#endif
 
 //4 banks of 64KB (It's actually 64K addresses on a 32-bit data bus on real VGA hardware)
 static uint8_t* vga_RAM[4] = {}; //4 planes
 //static uint8_t vga_RAM[4][VGA_RAMBANK_SIZE]; // = {0};
 
 static VGADAC_t vga_DAC;
+#if defined(ARDUINO)
+static uint16_t vgaColor[256];
+#endif
 
 Palette::Palette()
 {
@@ -106,6 +106,14 @@ Video::Video(VM& inVM)
 	{
 		// Error!
 	}
+
+#if defined(ARDUINO)
+	vga_framebuffer = (uint16_t *)calloc(VGA_FRAMEBUFFER_WIDTH * VGA_FRAMEBUFFER_HEIGHT, sizeof(uint16_t));
+	if (!vga_framebuffer)
+	{
+		log(Log,"[VIDEO] Failed to allocate vga_framebuffer");
+	}
+#endif
 
 	//vm.ports.setPortRedirector(0x3B0, 0x3DA, this);
 
@@ -431,6 +439,13 @@ Video::Video(VM& inVM)
 
 Video::~Video(void)
 {
+#if defined(ARDUINO)
+	if (vga_framebuffer)
+	{
+		free(vga_framebuffer);
+	}
+#endif
+
 	delete[] fontcga;
 	fontcga = nullptr;
 	
@@ -483,11 +498,22 @@ uint8_t Video::init(void)
 
 	log(Log, "[VIDEO] Initializing Video Device");
 
+#if defined(ARDUINO)
+	// uint32_t color = vga_color(0);
+	uint16_t color = vgaColor[0];
+	uint16_t *p = vga_framebuffer;
+	uint32_t l = vm.config.framebuffer.width * vm.config.framebuffer.height;
+	while (l--)
+	{
+		*p++ = color;
+	}
+#else
 	for (y = 0; y < vm.config.framebuffer.width; y++) { //400
 		for (x = 0; x < vm.config.framebuffer.height; x++) { //640
 			vga_framebuffer[y][x] = vga_color(0);
 		}
 	}
+#endif
 
 	//vm.renderer.draw((uint32_t*)vga_framebuffer,
 	//	vm.config.framebuffer.width, vm.config.framebuffer.height, VGA_FRAMEBUFFER_STRIDE * sizeof(uint32_t));
@@ -638,7 +664,11 @@ void Video::vga_renderThread(void* dummy) {
 		}
 
 		if (vga_doBlit == 1) {
+#if defined(ARDUINO)
+			vm.renderer.draw(vga_framebuffer, (int)vga_w, (int)vga_h, VGA_FRAMEBUFFER_STRIDE);// * sizeof(uint32_t));
+#else
 			vm.renderer.draw((uint32_t*)vga_framebuffer, (int)vga_w, (int)vga_h, VGA_FRAMEBUFFER_STRIDE);// * sizeof(uint32_t));
+#endif
 			vga_doBlit = 0;
 			//updatedscreen = false;
 		}
@@ -773,8 +803,13 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 					if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
 						color32 = (color32 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
 					}
+#if defined(ARDUINO)
+					color32 = vgaColor[color32];
+					vga_framebuffer[VGA_FRAMEBUFFER_WIDTH * scy + scx] = color32;
+#else
 					color32 = vga_color(color32);
 					vga_framebuffer[scy][scx] = color32;
+#endif
 				}
 				else {
 					if (blinkenable && blink && !vga_cursor_blink_state) {
@@ -787,8 +822,13 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 					if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
 						color32 = (color32 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
 					}
+#if defined(ARDUINO)
+					color32 = vgaColor[color32];
+					vga_framebuffer[VGA_FRAMEBUFFER_WIDTH * scy + scx] = color32;
+#else
 					color32 = vga_color(color32);
 					vga_framebuffer[scy][scx] = color32;
+#endif
 				}
 			}
 		}
@@ -806,10 +846,18 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 				plane = addr & 3;
 				addr = (addr >> 2) + startaddr;
 				cc = vga_RAM[plane][addr & 0xFFFF];
+#if defined(ARDUINO)
+				color32 = vgaColor[cc];
+#else
 				color32 = vga_color(cc);
+#endif
 				for (yadd = 0; yadd < yscanpixels; yadd++) {
 					for (xadd = 0; xadd < xscanpixels; xadd++) {
+#if defined(ARDUINO)
+						vga_framebuffer[VGA_FRAMEBUFFER_WIDTH * (scy + yadd) + scx + xadd] = color32;
+#else
 						vga_framebuffer[scy + yadd][scx + xadd] = color32;
+#endif
 					}
 				}
 			}
@@ -840,12 +888,27 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 				if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
 					color32 = (color32 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
 				}
+#if defined(ARDUINO)
+				color32 = vgaColor[color32];
+				uint32_t i;
+				uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
+				uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
+				for (yadd = 0; yadd < yscanpixels; yadd++) {
+					i = xscanpixels;
+					while(i--)
+					{
+						*p++ = color32;
+					}
+					p += xSkip;
+				}
+#else
 				color32 = vga_color(color32);
 				for (yadd = 0; yadd < yscanpixels; yadd++) {
 					for (xadd = 0; xadd < xscanpixels; xadd++) {
 						vga_framebuffer[scy + yadd][scx + xadd] = color32;
 					}
 				}
+#endif
 			}
 		}
 		break;
@@ -876,12 +939,27 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 				if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
 					color32 = (color32 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
 				}
+#if defined(ARDUINO)
+				color32 = vgaColor[color32];
+				uint32_t i;
+				uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
+				uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
+				for (yadd = 0; yadd < yscanpixels; yadd++) {
+					i = xscanpixels;
+					while(i--)
+					{
+						*p++ = color32;
+					}
+					p += xSkip;
+				}
+#else
 				color32 = vga_color(color32);
 				for (yadd = 0; yadd < yscanpixels; yadd++) {
 					for (xadd = 0; xadd < xscanpixels; xadd++) {
 						vga_framebuffer[scy + yadd][scx + xadd] = color32;
 					}
 				}
+#endif
 			}
 		}
 		break;
@@ -900,11 +978,25 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 				shift = 7 - (x & 7);
 				cc = (vga_RAM[0][addr] >> shift) & 1;
 				color32 = cc ? 0xFFFFFFFF : 0x00000000;
+#if defined(ARDUINO)
+				uint32_t i;
+				uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
+				uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
+				for (yadd = 0; yadd < yscanpixels; yadd++) {
+					i = xscanpixels;
+					while(i--)
+					{
+						*p++ = color32;
+					}
+					p += xSkip;
+				}
+#else
 				for (yadd = 0; yadd < yscanpixels; yadd++) {
 					for (xadd = 0; xadd < xscanpixels; xadd++) {
 						vga_framebuffer[scy + yadd][scx + xadd] = color32;
 					}
 				}
+#endif
 			}
 		}
 		break;
@@ -1249,6 +1341,10 @@ bool Video::portWriteHandler(uint16_t portnum, uint8_t value)
 			//vga_palette[vga_DAC.index][0] = vga_DAC.pal[vga_DAC.index][0] << 2;
 			//vga_palette[vga_DAC.index][1] = vga_DAC.pal[vga_DAC.index][1] << 2;
 			//vga_palette[vga_DAC.index][2] = vga_DAC.pal[vga_DAC.index][2] << 2;
+
+#if defined(ARDUINO)
+			vgaColor[vga_DAC.index] = ((((vga_DAC.pal[vga_DAC.index][0])&0xF8) << 8) | (((vga_DAC.pal[vga_DAC.index][1])&0xFC) << 3) | ((vga_DAC.pal[vga_DAC.index][2]) >> 3));
+#endif
 			
 			//UPDATED CODE
 			vga_DAC.step = 0;
