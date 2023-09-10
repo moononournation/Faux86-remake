@@ -70,6 +70,7 @@ public:
 		
 		//THIS CODE NEEDS TO BE MORE ACCURATE
 
+
 		if (!vm.config.cpuSpeed)	{
 			//vm.cpu.exec86(4700); //4.7Mhz
 			//vm.cpu.exec86(10000); //10Mhz
