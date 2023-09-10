@@ -57,10 +57,14 @@ void TaskManager::tick()
 				delay(0);
 				#endif
 				#else
-				CScheduler::Get()->Yield();
+				//CScheduler::Get()->Yield();
 				#endif
 			}
 		}
+		#ifdef _WIN32
+		#else
+		CScheduler::Get()->Yield();
+		#endif
 	}
 }
 

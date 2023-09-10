@@ -69,8 +69,7 @@ public:
 		int delay = 0;
 		
 		//THIS CODE NEEDS TO BE MORE ACCURATE
-		//vm.timing.tick();
-		
+
 		if (!vm.config.cpuSpeed)	{
 			//vm.cpu.exec86(4700); //4.7Mhz
 			//vm.cpu.exec86(10000); //10Mhz
@@ -86,18 +85,29 @@ public:
 			#else
 			vm.cpu.exec86(vm.config.cpuSpeed * 1000); //10Mhz RPi
 			#endif
+			
+			/*
 			if (vm.config.enableAudio) {
 				while (!vm.audio.isAudioBufferFilled()) {
 					vm.timing.tick();
 					vm.audio.tick();
+					if (vm.config.slowSystem) {
+						vm.audio.tick();
+						vm.audio.tick();
+						//vm.audio.tick();
+						//vm.audio.tick();
+						}
 				}
 			}
+			*/
+			
 			#ifdef _WIN32
-			delay = 1;
+			//delay = 1;
 			#else
 			//delay = 0;	
 			#endif
 		}
+		//vm.timing.tick();
 		return delay;
 	}
 };
@@ -247,13 +257,13 @@ VM::~VM()
 
 bool VM::simulate()
 {
-	input.tick();
+		input.tick();
 
-	#ifdef NETWORKING_ENABLED
-	if (ethif < 254) dispatch();
-	#endif
+		#ifdef NETWORKING_ENABLED
+		if (ethif < 254) dispatch();
+		#endif
 
-	taskManager.tick();
+		taskManager.tick();
 
 	return running;
 }
