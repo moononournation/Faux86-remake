@@ -50,18 +50,14 @@ void TaskManager::tick()
 				int result = tasks[n].task->update();
 				//tasks[n].nextTickTime = vm.timing.getTicks() + result * vm.timing.getHostFreq() / 1000;
 				tasks[n].nextTickTime = currentTime + result * vm.timing.getHostFreq() / 1000;
-				#ifdef _WIN32
-
-				#elif defined(ARDUINO)
-				#if defined(ESP32)
-				delay(0);
-				#endif
-				#else
-				//CScheduler::Get()->Yield();
-				#endif
 			}
 		}
 		#ifdef _WIN32
+
+		#elif defined(ARDUINO)
+		#if defined(ESP32)
+		delay(0);
+		#endif
 		#else
 		CScheduler::Get()->Yield();
 		#endif
