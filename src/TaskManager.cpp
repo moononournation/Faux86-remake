@@ -42,6 +42,7 @@ TaskManager::TaskManager(VM& inVM) : vm(inVM)
 
 void TaskManager::tick()
 {
+	#ifdef _WIN32
 	if (vm.config.singleThreaded) {
 		for (int n = 0; n < numTasks; n++) {
 			uint64_t currentTime = vm.timing.getTicks();
@@ -52,16 +53,27 @@ void TaskManager::tick()
 				tasks[n].nextTickTime = currentTime + result * vm.timing.getHostFreq() / 1000;
 			}
 		}
-		#ifdef _WIN32
-
-		#elif defined(ARDUINO)
-		#if defined(ESP32)
-		delay(0);
-		#endif
-		#else
-		CScheduler::Get()->Yield();
-		#endif
 	}
+	#else
+	for (int n = 0; n < numTasks; n++) {
+		uint64_t currentTime = vm.timing.getTicks();
+
+		if (tasks[n].task && tasks[n].running && tasks[n].nextTickTime < currentTime) {
+			int result = tasks[n].task->update();
+			//tasks[n].nextTickTime = vm.timing.getTicks() + result * vm.timing.getHostFreq() / 1000;
+			tasks[n].nextTickTime = currentTime + result * vm.timing.getHostFreq() / 1000;
+		}
+	}
+	#if defined(ARDUINO)
+	#if defined(ESP32)
+	delay(0);
+	#elif defined(ESP8266)
+	yield();
+	#endif
+	#else
+	CScheduler::Get()->Yield();
+	#endif
+	#endif // not _WIN32
 }
 
 void TaskManager::updateTaskThreaded(void* taskDataPtr)
