@@ -70,8 +70,12 @@
 	#define CPU_SET_HIGH_FLAGS
 #endif
 
+#if defined(ARDUINO)
+#define TIMING_INTERVAL 63
+#else
 #define TIMING_INTERVAL 15
 //#define TIMING_INTERVAL 31
+#endif
 
 //when USE_PREFETCH_QUEUE is defined, Faux86's CPU emulator uses a 6-byte
 //read-ahead cache for opcode fetches just as a real 8086/8088 does.
