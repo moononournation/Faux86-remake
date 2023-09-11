@@ -71,7 +71,7 @@
 #endif
 
 #if defined(ARDUINO)
-#define TIMING_INTERVAL 63
+#define TIMING_INTERVAL 31
 #else
 #define TIMING_INTERVAL 15
 //#define TIMING_INTERVAL 31
