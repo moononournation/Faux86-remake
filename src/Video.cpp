@@ -688,7 +688,12 @@ void Video::vga_renderThread(void* dummy) {
 }
 
 void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y) {
-	uint32_t addr, startaddr, cursorloc, cursor_x, cursor_y, fontbase, color32 = 0;
+	#if defined(ARDUINO)
+	uint32_t color16 = 0;
+	#else
+	uint32_t color32 = 0;
+	#endif
+	uint32_t addr, startaddr, cursorloc, cursor_x, cursor_y, fontbase = 0;
 	uint32_t scx, scy, x, y, hchars, divx, yscanpixels, xscanpixels, xstride, bpp, pixelsperbyte, shift = 0;
 	uint8_t cc, attr, fontdata, blink, mode, colorset, intensity, blinkenable, cursorenable, dup9 = 0;
 
@@ -783,6 +788,227 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 	startaddr = ((uint32_t)vga_crtcd[0xC] << 8) | (uint32_t)vga_crtcd[0xD];
 	cursorloc = ((uint32_t)vga_crtcd[0xE] << 8) | (uint32_t)vga_crtcd[0xF];
 
+#if defined(ARDUINO)
+	uint32_t y_offset;
+	switch (mode) {
+	case VGA_MODE_TEXT:
+		// log(Log, "[VIDEO] vga_update VGA_MODE_TEXT");
+		{
+			dup9 = 1; //TODO: fix this hack
+			cursor_x = cursorloc % hchars;
+			cursor_y = cursorloc / hchars;
+			//cursor_y = (cursorloc / hchars) + 1;
+			uint32_t maxscan = ((vga_crtcd[0x09] & 0x1F) + 1);
+			uint32_t console_x, console_y;
+			uint32_t console_cols = (end_x / divx) + 1;
+			uint32_t console_rows = (end_y / maxscan) + 1;
+			uint8_t char_x, char_y;
+			addr = startaddr + start_x;
+			y_offset = (VGA_FRAMEBUFFER_WIDTH * start_y) + start_x;
+			uint8_t *font_p;
+			for (console_y = 0; console_y < console_rows; ++console_y) {
+				for (console_x = 0; console_x < console_cols; ++console_x) {
+					cc = vga_RAM[0][addr];
+					attr = vga_RAM[1][addr];
+					blink = attr >> 7;
+
+					y_offset = (console_y * maxscan * VGA_FRAMEBUFFER_WIDTH) + (console_x * divx);
+					if ((console_y == cursor_y) && (console_x == cursor_x) &&
+						vga_cursor_blink_state && cursorenable) { //cursor should be displayed
+						color16 = vga_attrd[attr & 0x0F] | ((vga_attrd[0x14] & 0xC) << 4); //UPDATED
+						if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
+							color16 = (color16 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
+						}
+						color16 = vgaColor[color16];
+						for (char_y = 0; char_y < maxscan; ++char_y) {
+							for (char_x = 0; char_x < divx; ++char_x) {
+								vga_framebuffer[y_offset + char_x] = color16;
+							}
+							y_offset += VGA_FRAMEBUFFER_WIDTH;
+						}
+					}
+					else {
+						if (blinkenable && blink && !vga_cursor_blink_state) {
+							//all pixels in character get background color if blink attribute set and blink visible state is false
+							for (char_y = 0; char_y < maxscan; ++char_y) {
+								for (char_x = 0; char_x < divx; ++char_x) {
+									vga_framebuffer[y_offset + char_x] = 0;
+								}
+								y_offset += VGA_FRAMEBUFFER_WIDTH;
+							}
+						}
+						else {
+							//determine index into actual DAC palette
+							color16 = vga_attrd[(attr & 0x0F)] | ((vga_attrd[0x14] & 0xc) << 4);
+							uint32_t color16_bg = vga_attrd[(attr >> 4)] | ((vga_attrd[0x14] & 0xc) << 4);
+							if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
+								color16 = (color16 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
+								color16_bg = (color16_bg & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
+							}
+							color16 = vgaColor[color16];
+							color16_bg = vgaColor[color16_bg];
+
+							font_p = &vga_RAM[2][fontbase + ((uint32_t)cc << 5)];
+							for (char_y = 0; char_y < maxscan; ++char_y) {
+								fontdata = *font_p++;
+								for (char_x = 0; char_x < divx; ++char_x) {
+									if (fontdata & 0b10000000) {
+										vga_framebuffer[y_offset + char_x] = color16;
+									}
+									else {
+										vga_framebuffer[y_offset + char_x] = color16_bg;
+									}
+									fontdata <<= 1;
+								}
+								y_offset += VGA_FRAMEBUFFER_WIDTH;
+							}
+						}
+					}
+					++addr;
+				}
+				addr += hchars - console_cols;
+			}
+		}
+		//log(Log, "[VIDEO] VGA_MODE_TEXT END");
+		break;
+	case VGA_MODE_GRAPHICS_8BPP:
+		// log(Log, "[VIDEO] vga_update VGA_MODE_GRAPHICS_8BPP");
+		for (scy = start_y; scy <= end_y; scy += yscanpixels) {
+			y = scy / yscanpixels;
+			for (scx = start_x; scx <= end_x; scx += xscanpixels) {
+				uint8_t plane;
+				uint32_t yadd, xadd;
+				x = scx / xscanpixels;
+				//x += vga_attrd[0x13] & 0x0F; //WAS COMMENTED
+				addr = ((y * xstride) + x) & 0xFFFF;
+				plane = addr & 3;
+				addr = (addr >> 2) + startaddr;
+				cc = vga_RAM[plane][addr & 0xFFFF];
+				color16 = vgaColor[cc];
+				for (yadd = 0; yadd < yscanpixels; yadd++) {
+					for (xadd = 0; xadd < xscanpixels; xadd++) {
+						vga_framebuffer[VGA_FRAMEBUFFER_WIDTH * (scy + yadd) + scx + xadd] = color16;
+					}
+				}
+			}
+		}
+		break;
+	case VGA_MODE_GRAPHICS_4BPP:
+		// log(Log, "[VIDEO] vga_update VGA_MODE_GRAPHICS_4BPP");
+		{
+			y_offset = VGA_FRAMEBUFFER_WIDTH * start_y;
+			// Color Plane Enable (AR12)
+			uint16_t vga_attrd_x10_8 = vga_attrd[0x10] & 0x80;
+			uint16_t vga_attrd_x12 = vga_attrd[0x12];
+			uint16_t vga_attrd_x14_Cs4 = (vga_attrd[0x14] & 0xC)  << 4;
+			uint16_t vga_attrd_x14_3s4 = (vga_attrd[0x14] & 3) << 4;
+			uint8_t i;
+			for (y = start_y; y <= end_y; ++y) {
+				addr = (startaddr + (y * xstride) + (start_x / 8)) & 0xFFFF;
+				for (x = start_x; x <= end_x; x += 8) {
+					uint16_t v1 = (uint16_t)vga_RAM[0][addr];
+					uint16_t v2 = (uint16_t)vga_RAM[1][addr] << 1;
+					uint16_t v3 = (uint16_t)vga_RAM[2][addr] << 2;
+					uint16_t v4 = (uint16_t)vga_RAM[3][addr] << 3;
+
+					i = 8;
+					while (i--)
+					{
+						cc = ((v1 & 0b1) | (v2 & 0b10) | (v3 & 0b100) | (v4 & 0b1000)) & vga_attrd_x12;
+						//determine index into actual DAC palette
+						color16 = vga_attrd[cc] | vga_attrd_x14_Cs4; //UPDATED
+						if (vga_attrd_x10_8) { //P5, P4 replace
+							color16 &= 0xCF;
+							color16 |= vga_attrd_x14_3s4;
+						}
+						vga_framebuffer[y_offset + x + i] = vgaColor[color16];
+						v1 >>= 1;
+						v2 >>= 1;
+						v3 >>= 1;
+						v4 >>= 1;
+					}
+
+					++addr;
+				}
+				y_offset += VGA_FRAMEBUFFER_WIDTH;
+			}
+		}
+		break;
+	case VGA_MODE_GRAPHICS_2BPP:
+		// log(Log, "[VIDEO] vga_update VGA_MODE_GRAPHICS_2BPP");
+		for (scy = start_y; scy <= end_y; scy += yscanpixels) {
+			uint8_t isodd;
+			y = scy / yscanpixels;
+			isodd = y & 1;
+			y >>= 1;
+			for (scx = start_x; scx <= end_x; scx += xscanpixels) {
+				uint32_t yadd, xadd;
+				x = scx / xscanpixels;
+				//x += vga_attrd[0x13] & 0x0F;
+				addr = ((8192 * isodd) + (y * xstride) + (x / pixelsperbyte)) & 0xFFFF;
+				addr = addr + startaddr;
+				shift = (3 - (x & 3)) << 1;
+				cc = (vga_RAM[addr & 1][addr >> 1] >> shift) & 3;
+				
+				//cc |= ((vga_RAM[2 + addr & 1][addr >> 1] >> shift) & 3) << 2; //ADDED
+				cc |= ((vga_RAM[(2 + addr) & 1][addr >> 1] >> shift) & 3) << 2; //ADDED
+				// Color Plane Enable (AR12)
+				cc &= vga_attrd[0x12]; //ADDED
+				
+				//determine index into actual DAC palette
+				//color16 = vga_attrd[cc] | (vga_attrd[0x14] << 4); ORIGINAL
+				color16 = vga_attrd[cc] | ((vga_attrd[0x14] & 0xc) << 4); //UPDATED
+				
+				if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
+					color16 = (color16 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
+				}
+				color16 = vgaColor[color16];
+				uint32_t i;
+				uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
+				uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
+				for (yadd = 0; yadd < yscanpixels; yadd++) {
+					i = xscanpixels;
+					while(i--)
+					{
+						*p++ = color16;
+					}
+					p += xSkip;
+				}
+			}
+		}
+		break;
+	case VGA_MODE_GRAPHICS_1BPP:
+		// log(Log, "[VIDEO] vga_update VGA_MODE_GRAPHICS_1BPP");
+		for (scy = start_y; scy <= end_y; scy += yscanpixels) {
+			uint8_t isodd;
+			y = scy / yscanpixels;
+			isodd = y & 1;
+			y >>= 1;
+			for (scx = start_x; scx <= end_x; scx += xscanpixels) {
+				uint32_t yadd, xadd;
+				x = scx / xscanpixels;
+				//x += vga_attrd[0x13] & 0x0F;
+				addr = ((8192 * isodd) + (y * xstride) + (x / pixelsperbyte)) & 0xFFFF;
+				addr = addr + startaddr;
+				shift = 7 - (x & 7);
+				cc = (vga_RAM[0][addr] >> shift) & 1;
+				color16 = cc ? 0xFFFFFFFF : 0x00000000;
+				uint32_t i;
+				uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
+				uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
+				for (yadd = 0; yadd < yscanpixels; yadd++) {
+					i = xscanpixels;
+					while(i--)
+					{
+						*p++ = color16;
+					}
+					p += xSkip;
+				}
+			}
+		}
+		break;
+	}
+#else
 	switch (mode) {
 	case VGA_MODE_TEXT:
 		dup9 = 1; //TODO: fix this hack
@@ -819,13 +1045,8 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 					if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
 						color32 = (color32 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
 					}
-#if defined(ARDUINO)
-					color32 = vgaColor[color32];
-					vga_framebuffer[VGA_FRAMEBUFFER_WIDTH * scy + scx] = color32;
-#else
 					color32 = vga_color(color32);
 					vga_framebuffer[scy][scx] = color32;
-#endif
 				}
 				else {
 					if (blinkenable && blink && !vga_cursor_blink_state) {
@@ -838,13 +1059,8 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 					if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
 						color32 = (color32 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
 					}
-#if defined(ARDUINO)
-					color32 = vgaColor[color32];
-					vga_framebuffer[VGA_FRAMEBUFFER_WIDTH * scy + scx] = color32;
-#else
 					color32 = vga_color(color32);
 					vga_framebuffer[scy][scx] = color32;
-#endif
 				}
 			}
 		}
@@ -855,25 +1071,17 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 			y = scy / yscanpixels;
 			for (scx = start_x; scx <= end_x; scx += xscanpixels) {
 				uint8_t plane;
-				uint32_t yadd, xadd, color32;
+				uint32_t yadd, xadd;
 				x = scx / xscanpixels;
 				//x += vga_attrd[0x13] & 0x0F; //WAS COMMENTED
 				addr = ((y * xstride) + x) & 0xFFFF;
 				plane = addr & 3;
 				addr = (addr >> 2) + startaddr;
 				cc = vga_RAM[plane][addr & 0xFFFF];
-#if defined(ARDUINO)
-				color32 = vgaColor[cc];
-#else
 				color32 = vga_color(cc);
-#endif
 				for (yadd = 0; yadd < yscanpixels; yadd++) {
 					for (xadd = 0; xadd < xscanpixels; xadd++) {
-#if defined(ARDUINO)
-						vga_framebuffer[VGA_FRAMEBUFFER_WIDTH * (scy + yadd) + scx + xadd] = color32;
-#else
 						vga_framebuffer[scy + yadd][scx + xadd] = color32;
-#endif
 					}
 				}
 			}
@@ -904,27 +1112,12 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 				if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
 					color32 = (color32 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
 				}
-#if defined(ARDUINO)
-				color32 = vgaColor[color32];
-				uint32_t i;
-				uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
-				uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
-				for (yadd = 0; yadd < yscanpixels; yadd++) {
-					i = xscanpixels;
-					while(i--)
-					{
-						*p++ = color32;
-					}
-					p += xSkip;
-				}
-#else
 				color32 = vga_color(color32);
 				for (yadd = 0; yadd < yscanpixels; yadd++) {
 					for (xadd = 0; xadd < xscanpixels; xadd++) {
 						vga_framebuffer[scy + yadd][scx + xadd] = color32;
 					}
 				}
-#endif
 			}
 		}
 		break;
@@ -955,27 +1148,12 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 				if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
 					color32 = (color32 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
 				}
-#if defined(ARDUINO)
-				color32 = vgaColor[color32];
-				uint32_t i;
-				uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
-				uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
-				for (yadd = 0; yadd < yscanpixels; yadd++) {
-					i = xscanpixels;
-					while(i--)
-					{
-						*p++ = color32;
-					}
-					p += xSkip;
-				}
-#else
 				color32 = vga_color(color32);
 				for (yadd = 0; yadd < yscanpixels; yadd++) {
 					for (xadd = 0; xadd < xscanpixels; xadd++) {
 						vga_framebuffer[scy + yadd][scx + xadd] = color32;
 					}
 				}
-#endif
 			}
 		}
 		break;
@@ -994,29 +1172,16 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 				shift = 7 - (x & 7);
 				cc = (vga_RAM[0][addr] >> shift) & 1;
 				color32 = cc ? 0xFFFFFFFF : 0x00000000;
-#if defined(ARDUINO)
-				uint32_t i;
-				uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
-				uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
-				for (yadd = 0; yadd < yscanpixels; yadd++) {
-					i = xscanpixels;
-					while(i--)
-					{
-						*p++ = color32;
-					}
-					p += xSkip;
-				}
-#else
 				for (yadd = 0; yadd < yscanpixels; yadd++) {
 					for (xadd = 0; xadd < xscanpixels; xadd++) {
 						vga_framebuffer[scy + yadd][scx + xadd] = color32;
 					}
 				}
-#endif
 			}
 		}
 		break;
 	}
+#endif
 }
 
 uint8_t Video::vga_readcrtci() {
