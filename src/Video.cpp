@@ -71,7 +71,7 @@ static const uint8_t vga_gfxpal[2][2][4] = {
 	}
 };
 
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 uint16_t *vga_framebuffer;
 #else
 //static uint32_t vga_framebuffer[1024][1024];
@@ -83,7 +83,7 @@ static uint8_t* vga_RAM[4] = {}; //4 planes
 //static uint8_t vga_RAM[4][VGA_RAMBANK_SIZE]; // = {0};
 
 static VGADAC_t vga_DAC;
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 static uint16_t vgaColor[256];
 #endif
 
@@ -107,7 +107,7 @@ Video::Video(VM& inVM)
 		// Error!
 	}
 
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 	vga_framebuffer = (uint16_t *)calloc(VGA_FRAMEBUFFER_WIDTH * VGA_FRAMEBUFFER_HEIGHT, sizeof(uint16_t));
 	if (!vga_framebuffer)
 	{
@@ -439,7 +439,7 @@ Video::Video(VM& inVM)
 
 Video::~Video(void)
 {
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 	if (vga_framebuffer)
 	{
 		free(vga_framebuffer);
@@ -511,7 +511,7 @@ uint8_t Video::init(void)
 
 	log(Log, "[VIDEO] Initializing Video Device");
 
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 	// uint32_t color = vga_color(0);
 	uint16_t color = vgaColor[0];
 	uint16_t *p = vga_framebuffer;
@@ -677,7 +677,7 @@ void Video::vga_renderThread(void* dummy) {
 		}
 
 		if (vga_doBlit == 1) {
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 			vm.renderer.draw(vga_framebuffer, (int)vga_w, (int)vga_h, VGA_FRAMEBUFFER_STRIDE);// * sizeof(uint32_t));
 #else
 			vm.renderer.draw((uint32_t*)vga_framebuffer, (int)vga_w, (int)vga_h, VGA_FRAMEBUFFER_STRIDE);// * sizeof(uint32_t));
@@ -688,7 +688,7 @@ void Video::vga_renderThread(void* dummy) {
 }
 
 void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint32_t end_y) {
-	#if defined(ARDUINO)
+	#if defined(ARDUINO) || (DEPTH == 16)
 	uint32_t color16 = 0;
 	#else
 	uint32_t color32 = 0;
@@ -788,7 +788,7 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 	startaddr = ((uint32_t)vga_crtcd[0xC] << 8) | (uint32_t)vga_crtcd[0xD];
 	cursorloc = ((uint32_t)vga_crtcd[0xE] << 8) | (uint32_t)vga_crtcd[0xF];
 
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 	uint32_t y_offset;
 	switch (mode) {
 	case VGA_MODE_TEXT:
@@ -1523,7 +1523,7 @@ bool Video::portWriteHandler(uint16_t portnum, uint8_t value)
 			//vga_palette[vga_DAC.index][1] = vga_DAC.pal[vga_DAC.index][1] << 2;
 			//vga_palette[vga_DAC.index][2] = vga_DAC.pal[vga_DAC.index][2] << 2;
 
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 			vgaColor[vga_DAC.index] = ((((vga_DAC.pal[vga_DAC.index][0])&0xF8) << 8) | (((vga_DAC.pal[vga_DAC.index][1])&0xFC) << 3) | ((vga_DAC.pal[vga_DAC.index][2]) >> 3));
 #endif
 			

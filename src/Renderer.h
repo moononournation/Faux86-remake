@@ -74,7 +74,7 @@ namespace Faux86
 
 		void init(uint32_t _fbwidth, uint32_t _fbheight);
 		void markScreenModeChanged(uint32_t newWidth, uint32_t newHeight);
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 		void draw(uint16_t* pixels, int w, int h, int stride);
 #else
 		void draw(uint32_t* pixels, int w, int h, int stride);

@@ -55,7 +55,7 @@ namespace Faux86
 
 		//virtual void present() {}
 		
-#if defined(ARDUINO)
+#if defined(ARDUINO) || (DEPTH == 16)
 		virtual void blit(uint16_t *pixels, int w, int h, int stride) = 0;
 #else
 		virtual void blit(uint32_t *pixels, int w, int h, int stride) = 0;
