@@ -31,9 +31,9 @@
 #include <circle/util.h>
 #endif
 
-#include "Ram.h"
 #include "VM.h"
 #include "Debugger.h"
+#include "Ram.h"
 
 using namespace Faux86;
 

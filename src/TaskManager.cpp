@@ -30,8 +30,10 @@
 #else
 #include <circle/sched/scheduler.h>
 #endif
-#include "TaskManager.h"
+
+
 #include "VM.h"
+#include "TaskManager.h"
 
 using namespace Faux86;
 
@@ -62,6 +64,7 @@ void TaskManager::tick()
 			int result = tasks[n].task->update();
 			//tasks[n].nextTickTime = vm.timing.getTicks() + result * vm.timing.getHostFreq() / 1000;
 			tasks[n].nextTickTime = currentTime + result * vm.timing.getHostFreq() / 1000;
+			//CScheduler::Get()->Yield();
 		}
 	}
 	#if defined(ARDUINO)

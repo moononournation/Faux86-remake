@@ -8,19 +8,21 @@ Most of the code has been updated and re-written in C++ but the core CPU emulati
 
 ## Current Status
 
-09-09-2023 Release build v1.21 for 32/64Bit Windows
-[Faux86-remake Release Build V1.21 Win32](https://github.com/ArnoldUK/Faux86-remake/releases/tag/v1.21)
+21-09-2023 Release build v1.22 for 32/64Bit Windows
+[Faux86-remake Release Build V1.22 Win32](https://github.com/ArnoldUK/Faux86-remake/releases/tag/v1.22-Win32)
 
-09-09-2023 Release build V1.1 for ARM RPi 1,2,3,4
-[Faux86-remake Release Build V1.1 ARM-RPi](https://github.com/ArnoldUK/Faux86-remake/releases/tag/v1.1-RPi)
+21-09-2023 Release build V1.22 for ARM RPi 1,2,3,4
+[Faux86-remake Release Build V1.22 ARM-RPi](https://github.com/ArnoldUK/Faux86-remake/releases/tag/v1.22-RPi)
 
-- Text cursor fixed and updated with new block cursor.
-- Support for monitor display emulation in Win32 and RPi releases.
-- Improved mouse and keyboard control.
-- More accurate emulation speed. 
-- Video rendering improvements.
-- Fixed RPi boot config.txt
-- Some minor fixes.
+- Updated keyboard input and fixed repeated cursor keys.
+- Huge increase in emulation speed on slower computers and all RPi models. 
+- Upto 50% Text and Video rendering improvements. Thanks to [moononournation](https://github.com/moononournation)
+- Upto 25% Audio performance increase when using basic OPL2 emulation.
+- Added option `cpu=#` to settings file for the CPU type and opcode emulation. Default 2 for NEC V20.
+- Added option `sndopl3=1` to settings file to enable/disable full Yamaha OPL3 emulation.
+- Added more emulated monitor modes to `monitor=#` in settings file.
+- Compiler support for ARDUINO. Thanks to [moononournation](https://github.com/moononournation)
+- Minor fixes and code refactoring.
 
 # Release Notes
 Faux86-remake is still work in progress but fixes many issues and adds more features including:
@@ -36,7 +38,7 @@ Faux86-remake is still work in progress but fixes many issues and adds more feat
 - Many bug fixes.
 
 ## Emulator Features
-- 8086, V20, 80186 and 286 instruction set.
+- 8086/8088, V20, 80186 and limited 286 instruction set.
 - Configurable CPU speeds from 5Mhz upto 100Mhz.
 - Custom Hardware BIOS's supported.
 - Supports bootable disk images in .img and .raw file format.
@@ -47,10 +49,26 @@ Faux86-remake is still work in progress but fixes many issues and adds more feat
 - Serial Port 2-Button mouse.
 
 ## Screenshots
+### Booting BIOS and RAM Test
 ![screenshot1](/screenshots/faux86-remake-screenshot-1.png)
+
+### Planet X3 EGA Color Mode
 ![screenshot2](/screenshots/faux86-remake-screenshot-2.png)
+
+### SysChk System Info
 ![screenshot3](/screenshots/faux86-remake-screenshot-3.png)
+
+### Windows 3.0 VGA 16 Colors
 ![screenshot4](/screenshots/faux86-remake-screenshot-4.png)
+
+### Monitor Emulation Amber Terminal
+![screenshot5](/screenshots/faux86-remake-screenshot-5.png)
+
+### Monitor Emulation Green Terminal
+![screenshot6](/screenshots/faux86-remake-screenshot-6.png)
+
+### Borland BGI Demo DOS Colors
+![screenshot7](/screenshots/faux86-remake-screenshot-7.png)
 
 # Emulator Requirements
 
@@ -94,22 +112,27 @@ Faux86 is designed to run 'bare metal' on a Raspberry Pi without any supporting 
 Running 'bare metal' or directly on hardware means the emulator can boot to bios in less than 2 secs.
 
 The zip archive contains all the kernels and disk images to boot the emulator directly from a supported
-Raspberry Pi model. Copy all the files from within the zip archive to a FAT32 formatted SD-Card and insert
-the card into your RPi. The RPi is now ready to boot the emulator from the SD-Card.
+Raspberry Pi model. Copy all the files from within the zip archive to a FAT/FAT32 formatted SD-Card and
+insert the card into your RPi. The RPi is now ready to boot the emulator from the SD-Card.
 A USB keyboard and mouse should be plugged in before booting the emulator (hot plugging is unsupported).
 
 By default Faux86 boots from a floppy image name `fd0.img` which is mounted as Drive A:.
 An additional floppy drive `fd1.img` Drive B: can also be used if included on the Sd-Card.
 The emulator also supports booting hard disk images `hd0.img` Drive C: and `hd1.img` Drive D:.
 
-NOTE:
+### IMPORTANT NOTES PLEASE READ:
 Emulation performance and full hardware emulation capabilities depends on the Raspberry Pi model.
 Currently all RPi models are capable of running the emulator with the same performance of an
-XT 8088 Clone with a 12Mhz V20 CPU and basic speaker sound emulation.
+XT 8088 Clone with a 12Mhz V20 CPU and basic speaker and OPL2 sound emulation.
+
+It is recommended to only use a small standard (4Gb or less) SD-Card and not a SDHC or high speed card.
+If the emulator fails to boot then using a smaller FAT16 formatted card provides more performance.
 
 Raspberry Pi Models 1 and 2 cannot provide the processing power to fully emulate the Adlib
-and Soundblaster sound cards. It is recommended to disable Adlib and Soundblaster emulation or
-reduce the samplerate and increase the video rendering time from within the settings file.
+and Soundblaster sound cards. It is recommended to either disable Adlib and Soundblaster emulation
+or reduce the samplerate and use only OPL2 emulation in settings file.
+Increase the video rendering time from within the settings file will also boost emulation performance
+but frame rates will be much lower.
 
 ## Emulator Settings File
 The emulator is configured with a settings file named `faux86.cfg` located within the same folder
@@ -141,6 +164,8 @@ for a sucessfull build.
 Along with all the build tools and toolchains, the [C++ Circle SDK](https://github.com/rsta2/circle) is
 also required for the Raspberry Pi build to be successful. THe Circle SDK requires some #defines to be
 set for the correct Raspberry model being targetted. The makefile is pre-configured for Raspberry Pi 1.
+
+Read the [BUILD.md](BUILD.md) documentation file for more details.
 
 # Credits
 Faux86-remake was originally based on the Fake86 emulator by Mike Chambers and James Howard.

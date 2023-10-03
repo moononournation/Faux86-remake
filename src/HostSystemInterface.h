@@ -20,9 +20,18 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+
+#ifndef _HostSystemInterface_h
+#define _HostSystemInterface_h
+
 #pragma once
 
+#include "Config.h"
 #include "Types.h"
+
+#ifndef BUILD_STRING
+	#error BUILD_STRING not defined. Add #include "Config.h" to this unit.
+#endif
 
 namespace Faux86
 {
@@ -96,3 +105,5 @@ namespace Faux86
 		VM* vm;
 	};
 }
+
+#endif
