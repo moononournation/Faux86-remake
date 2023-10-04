@@ -836,6 +836,9 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 			uint8_t char_x, char_y;
 			addr = startaddr + start_x;
 			y_offset = (VGA_FRAMEBUFFER_WIDTH * start_y) + start_x;
+			uint16_t vga_attrd_x10_80 = vga_attrd[0x10] & 0x80;
+			uint16_t vga_attrd_x14_3s4 = (vga_attrd[0x14] & 3) << 4;
+			uint16_t vga_attrd_x14_Cs4 = (vga_attrd[0x14] & 0xC) << 4;
 			uint8_t *font_p;
 			for (console_y = 0; console_y < console_rows; ++console_y) {
 				for (console_x = 0; console_x < console_cols; ++console_x) {
@@ -846,12 +849,12 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 
 					y_offset = (console_y * maxscan * VGA_FRAMEBUFFER_WIDTH) + (console_x * divx);
 					//determine index into actual DAC palette
-					color16 = vga_attrd[(attr & 0x0F)] | ((vga_attrd[0x14] & 0xC) << 4);
-					//uint32_t color16_bg = vga_attrd[(attr >> 4)] | ((vga_attrd[0x14] & 0xc) << 4);
-					uint16_t color16_bg = vga_attrd[(attr >> 4)] | ((vga_attrd[0x14] & 0xc) << 4);
-					if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
-						color16 = (color16 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
-						color16_bg = (color16_bg & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
+					color16 = vga_attrd[(attr & 0x0F)] | vga_attrd_x14_Cs4;
+					//uint32_t color16_bg = vga_attrd[(attr >> 4)] | vga_attrd_x14_Cs4;
+					uint16_t color16_bg = vga_attrd[(attr >> 4)] | vga_attrd_x14_Cs4;
+					if (vga_attrd_x10_80) { //P5, P4 replace
+						color16 = (color16 & 0xCF) | vga_attrd_x14_3s4;
+						color16_bg = (color16_bg & 0xCF) | vga_attrd_x14_3s4;
 					}
 					color16 = vgaColor[color16]; //FG text color
 					//color16 = 2;
@@ -859,7 +862,7 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 					//color16 = vgaColor[7]; //FG Monochrome
 					//color16 = vgaColor[9]; //FG Blue
 					//color16 = vgaColor[11]; //FG Cyan
-					//color16 =((vga_attrd[0x14] & 0xc) << 4);
+					//color16 = vga_attrd_x14_Cs4;
 					
 					//color16_bg = vgaColor[color16_bg]; //BG text color
 					color16_bg = vgaColor[color16_bg];
@@ -904,10 +907,12 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 				addr = (addr >> 2) + startaddr;
 				cc = vga_RAM[plane][addr & 0xFFFF];
 				color16 = vgaColor[cc];
+				y_offset = scy * VGA_FRAMEBUFFER_WIDTH;
 				for (yadd = 0; yadd < yscanpixels; yadd++) {
 					for (xadd = 0; xadd < xscanpixels; xadd++) {
-						vga_framebuffer[VGA_FRAMEBUFFER_WIDTH * (scy + yadd) + scx + xadd] = color16;
+						vga_framebuffer[y_offset + scx + xadd] = color16;
 					}
+					y_offset += VGA_FRAMEBUFFER_WIDTH;
 				}
 			}
 		}
@@ -917,9 +922,9 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 		{
 			y_offset = VGA_FRAMEBUFFER_WIDTH * start_y;
 			// Color Plane Enable (AR12)
-			uint16_t vga_attrd_x10_8 = vga_attrd[0x10] & 0x80;
+			uint16_t vga_attrd_x10_80 = vga_attrd[0x10] & 0x80;
 			uint16_t vga_attrd_x12 = vga_attrd[0x12];
-			uint16_t vga_attrd_x14_Cs4 = (vga_attrd[0x14] & 0xC)  << 4;
+			uint16_t vga_attrd_x14_Cs4 = (vga_attrd[0x14] & 0xC) << 4;
 			uint16_t vga_attrd_x14_3s4 = (vga_attrd[0x14] & 3) << 4;
 			uint8_t i;
 			for (y = start_y; y <= end_y; ++y) {
@@ -936,7 +941,7 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 						cc = ((v1 & 0b1) | (v2 & 0b10) | (v3 & 0b100) | (v4 & 0b1000)) & vga_attrd_x12;
 						//determine index into actual DAC palette
 						color16 = vga_attrd[cc] | vga_attrd_x14_Cs4; //UPDATED
-						if (vga_attrd_x10_8) { //P5, P4 replace
+						if (vga_attrd_x10_80) { //P5, P4 replace
 							color16 &= 0xCF;
 							color16 |= vga_attrd_x14_3s4;
 						}
@@ -954,44 +959,49 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 		}
 		break;
 	case VGA_MODE_GRAPHICS_2BPP:
-		// log(Log, "[VIDEO] vga_update VGA_MODE_GRAPHICS_2BPP");
-		for (scy = start_y; scy <= end_y; scy += yscanpixels) {
-			uint8_t isodd;
-			y = scy / yscanpixels;
-			isodd = y & 1;
-			y >>= 1;
-			for (scx = start_x; scx <= end_x; scx += xscanpixels) {
-				uint32_t yadd, xadd;
-				x = scx / xscanpixels;
-				//x += vga_attrd[0x13] & 0x0F;
-				addr = ((8192 * isodd) + (y * xstride) + (x / pixelsperbyte)) & 0xFFFF;
-				addr = addr + startaddr;
-				shift = (3 - (x & 3)) << 1;
-				cc = (vga_RAM[addr & 1][addr >> 1] >> shift) & 3;
-				
-				//cc |= ((vga_RAM[2 + addr & 1][addr >> 1] >> shift) & 3) << 2; //ADDED
-				cc |= ((vga_RAM[(2 + addr) & 1][addr >> 1] >> shift) & 3) << 2; //ADDED
-				// Color Plane Enable (AR12)
-				cc &= vga_attrd[0x12]; //ADDED
-				
-				//determine index into actual DAC palette
-				//color16 = vga_attrd[cc] | (vga_attrd[0x14] << 4); ORIGINAL
-				color16 = vga_attrd[cc] | ((vga_attrd[0x14] & 0xc) << 4); //UPDATED
-				
-				if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
-					color16 = (color16 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
-				}
-				color16 = vgaColor[color16];
-				uint32_t i;
-				uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
-				uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
-				for (yadd = 0; yadd < yscanpixels; yadd++) {
-					i = xscanpixels;
-					while(i--)
-					{
-						*p++ = color16;
+		{
+			// log(Log, "[VIDEO] vga_update VGA_MODE_GRAPHICS_2BPP");
+			uint16_t vga_attrd_x10_80 = vga_attrd[0x10] & 0x80;
+			uint16_t vga_attrd_x14_3s4 = (vga_attrd[0x14] & 3) << 4;
+			uint16_t vga_attrd_x14_Cs4 = (vga_attrd[0x14] & 0xC) << 4;
+			for (scy = start_y; scy <= end_y; scy += yscanpixels) {
+				uint8_t isodd;
+				y = scy / yscanpixels;
+				isodd = y & 1;
+				y >>= 1;
+				for (scx = start_x; scx <= end_x; scx += xscanpixels) {
+					uint32_t yadd, xadd;
+					x = scx / xscanpixels;
+					//x += vga_attrd[0x13] & 0x0F;
+					addr = ((8192 * isodd) + (y * xstride) + (x / pixelsperbyte)) & 0xFFFF;
+					addr = addr + startaddr;
+					shift = (3 - (x & 3)) << 1;
+					cc = (vga_RAM[addr & 1][addr >> 1] >> shift) & 3;
+					
+					//cc |= ((vga_RAM[2 + addr & 1][addr >> 1] >> shift) & 3) << 2; //ADDED
+					cc |= ((vga_RAM[(2 + addr) & 1][addr >> 1] >> shift) & 3) << 2; //ADDED
+					// Color Plane Enable (AR12)
+					cc &= vga_attrd[0x12]; //ADDED
+					
+					//determine index into actual DAC palette
+					//color16 = vga_attrd[cc] | (vga_attrd[0x14] << 4); ORIGINAL
+					color16 = vga_attrd[cc] | vga_attrd_x14_Cs4; //UPDATED
+					
+					if (vga_attrd_x10_80) { //P5, P4 replace
+						color16 = (color16 & 0xCF) | vga_attrd_x14_3s4;
 					}
-					p += xSkip;
+					color16 = vgaColor[color16];
+					uint32_t i;
+					uint16_t *p = vga_framebuffer + (scy * VGA_FRAMEBUFFER_WIDTH) + scx;
+					uint32_t xSkip = VGA_FRAMEBUFFER_WIDTH - xscanpixels;
+					for (yadd = 0; yadd < yscanpixels; yadd++) {
+						i = xscanpixels;
+						while(i--)
+						{
+							*p++ = color16;
+						}
+						p += xSkip;
+					}
 				}
 			}
 		}
