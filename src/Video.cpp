@@ -829,6 +829,10 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 			uint32_t console_x, console_y;
 			uint32_t console_cols = (end_x / divx) + 1;
 			uint32_t console_rows = (end_y / maxscan) + 1;
+			uint8_t cursor_indicator_begin = vga_crtcd[VGA_REG_DATA_CURSOR_BEGIN] & 31;
+			uint8_t cursor_indicator_end = vga_crtcd[VGA_REG_DATA_CURSOR_END] & 31;
+			uint8_t cursor_blink;
+
 			uint8_t char_x, char_y;
 			addr = startaddr + start_x;
 			y_offset = (VGA_FRAMEBUFFER_WIDTH * start_y) + start_x;
@@ -838,67 +842,46 @@ void Video::vga_update(uint32_t start_x, uint32_t start_y, uint32_t end_x, uint3
 					cc = vga_RAM[0][addr];
 					attr = vga_RAM[1][addr];
 					blink = attr >> 7;
+					cursor_blink = (console_y == cursor_y) && (console_x == cursor_x) && vga_cursor_blink_state && cursorenable;
 
 					y_offset = (console_y * maxscan * VGA_FRAMEBUFFER_WIDTH) + (console_x * divx);
-					if ((console_y == cursor_y) && (console_x == cursor_x) &&
-						vga_cursor_blink_state && cursorenable) { //cursor should be displayed
-						color16 = vga_attrd[attr & 0x0F] | ((vga_attrd[0x14] & 0xC) << 4); //UPDATED
-						if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
-							color16 = (color16 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
-						}
-						color16 = vgaColor[color16]; //set cursor color
-						for (char_y = 0; char_y < maxscan; ++char_y) {
-							for (char_x = 0; char_x < divx; ++char_x) {
+					//determine index into actual DAC palette
+					color16 = vga_attrd[(attr & 0x0F)] | ((vga_attrd[0x14] & 0xC) << 4);
+					//uint32_t color16_bg = vga_attrd[(attr >> 4)] | ((vga_attrd[0x14] & 0xc) << 4);
+					uint16_t color16_bg = vga_attrd[(attr >> 4)] | ((vga_attrd[0x14] & 0xc) << 4);
+					if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
+						color16 = (color16 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
+						color16_bg = (color16_bg & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
+					}
+					color16 = vgaColor[color16]; //FG text color
+					//color16 = 2;
+					//color16 = vgaColor[120]; //FG Green
+					//color16 = vgaColor[7]; //FG Monochrome
+					//color16 = vgaColor[9]; //FG Blue
+					//color16 = vgaColor[11]; //FG Cyan
+					//color16 =((vga_attrd[0x14] & 0xc) << 4);
+					
+					//color16_bg = vgaColor[color16_bg]; //BG text color
+					color16_bg = vgaColor[color16_bg];
+
+					font_p = &vga_RAM[2][fontbase + ((uint32_t)cc << 5)];
+					for (char_y = 0; char_y < maxscan; ++char_y) {
+						fontdata = *font_p++;
+						for (char_x = 0; char_x < divx; ++char_x) {
+							if ((cursor_blink) && (char_y >= cursor_indicator_begin) && (char_y <= cursor_indicator_end)) {
 								vga_framebuffer[y_offset + char_x] = color16;
 							}
-							y_offset += VGA_FRAMEBUFFER_WIDTH;
-						}
-					}
-					else {
-						if (blinkenable && blink && !vga_cursor_blink_state) {
-							//all pixels in character get background color if blink attribute set and blink visible state is false
-							for (char_y = 0; char_y < maxscan; ++char_y) {
-								for (char_x = 0; char_x < divx; ++char_x) {
-									vga_framebuffer[y_offset + char_x] = 0;
+							else {
+								if (fontdata & 0b10000000) {
+									vga_framebuffer[y_offset + char_x] = color16;
 								}
-								y_offset += VGA_FRAMEBUFFER_WIDTH;
-							}
-						}
-						else {
-							//determine index into actual DAC palette
-							color16 = vga_attrd[(attr & 0x0F)] | ((vga_attrd[0x14] & 0xc) << 4);
-							//uint32_t color16_bg = vga_attrd[(attr >> 4)] | ((vga_attrd[0x14] & 0xc) << 4);
-							uint16_t color16_bg = vga_attrd[(attr >> 4)] | ((vga_attrd[0x14] & 0xc) << 4);
-							if (vga_attrd[0x10] & 0x80) { //P5, P4 replace
-								color16 = (color16 & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
-								color16_bg = (color16_bg & 0xCF) | ((vga_attrd[0x14] & 3) << 4);
-							}
-							color16 = vgaColor[color16]; //FG text color
-							//color16 = 2;
-							//color16 = vgaColor[120]; //FG Green
-							//color16 = vgaColor[7]; //FG Monochrome
-							//color16 = vgaColor[9]; //FG Blue
-							//color16 = vgaColor[11]; //FG Cyan
-							//color16 =((vga_attrd[0x14] & 0xc) << 4);
-							
-							//color16_bg = vgaColor[color16_bg]; //BG text color
-							color16_bg = vgaColor[color16_bg];
-
-							font_p = &vga_RAM[2][fontbase + ((uint32_t)cc << 5)];
-							for (char_y = 0; char_y < maxscan; ++char_y) {
-								fontdata = *font_p++;
-								for (char_x = 0; char_x < divx; ++char_x) {
-									if (fontdata & 0b10000000) {
-										vga_framebuffer[y_offset + char_x] = color16;
-									}
-									else {
-										vga_framebuffer[y_offset + char_x] = color16_bg;
-									}
-									fontdata <<= 1;
+								else {
+									vga_framebuffer[y_offset + char_x] = color16_bg;
 								}
-								y_offset += VGA_FRAMEBUFFER_WIDTH;
 							}
+							fontdata <<= 1;
 						}
+						y_offset += VGA_FRAMEBUFFER_WIDTH;
 					}
 					++addr;
 				}
