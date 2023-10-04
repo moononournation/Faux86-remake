@@ -73,7 +73,6 @@ public:
 		
 		//THIS CODE NEEDS TO BE MORE ACCURATE
 
-
 		if (!vm.config.cpuSpeed)	{
 			//vm.cpu.exec86(4700, vm.config.cpuTiming); //4.7Mhz
 			//vm.cpu.exec86(10000, vm.config.cpuTiming); //10Mhz
