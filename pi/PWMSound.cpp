@@ -23,25 +23,24 @@
 
 using namespace Faux86;
 
-PWMSound::PWMSound (Audio& inAudio, CInterruptSystem *pInterrupt, unsigned nSampleRate)
-	: CPWMSoundBaseDevice(pInterrupt, nSampleRate, ChunkSize)
-	, audio(inAudio)
+PWMSound::PWMSound(Audio &inAudio, CInterruptSystem *pInterrupt, unsigned nSampleRate)
+    : CPWMSoundBaseDevice(pInterrupt, nSampleRate, ChunkSize), audio(inAudio)
 {
 }
 
-unsigned PWMSound::GetChunk (u32 *pBuffer, unsigned nChunkSize)
+unsigned PWMSound::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 {
-	uint8_t generatedAudio[ChunkSize / 2];
-	int numSamples = (int) nChunkSize / 2;
-	audio.fillAudioBuffer(generatedAudio, numSamples);
-	
-	for(int n = 0; n < numSamples; n++)
-	{
-		unsigned sample = generatedAudio[n];
-		sample <<= 4;
-		pBuffer[n * 2] = sample;
-		pBuffer[n * 2 + 1] = sample;
-	}
-	
-	return nChunkSize;
+  uint8_t generatedAudio[ChunkSize / 2];
+  int numSamples = (int)nChunkSize / 2;
+  audio.fillAudioBuffer(generatedAudio, numSamples);
+
+  for (int n = 0; n < numSamples; n++)
+  {
+    unsigned sample = generatedAudio[n];
+    sample <<= 4;
+    pBuffer[n * 2] = sample;
+    pBuffer[n * 2 + 1] = sample;
+  }
+
+  return nChunkSize;
 }

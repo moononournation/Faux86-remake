@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -27,36 +27,36 @@
 
 namespace Faux86
 {
-	class VM;
+  class VM;
 
-	class PortInterface
-	{
-	public:
-		virtual bool portWriteHandler(uint16_t portnum, uint8_t value) { return false; }
-		virtual bool portReadHandler(uint16_t portnum, uint8_t& outValue) { return false; }
-	};
+  class PortInterface
+  {
+  public:
+    virtual bool portWriteHandler(uint16_t portnum, uint8_t value) { return false; }
+    virtual bool portReadHandler(uint16_t portnum, uint8_t &outValue) { return false; }
+  };
 
-	class Ports
-	{
-		static constexpr int NumPorts = 0x10000;
+  class Ports
+  {
+    static constexpr int NumPorts = 0x10000;
 
-	public:
-		Ports(VM& inVM);
+  public:
+    Ports(VM &inVM);
 
-		void reset();
+    void reset();
 
-		void outByte(uint16_t portnum, uint8_t value);
-		void outWord(uint16_t portnum, uint16_t value);
-		uint8_t	inByte(uint16_t portnum);
-		uint16_t inWord(uint16_t portnum);
+    void outByte(uint16_t portnum, uint8_t value);
+    void outWord(uint16_t portnum, uint16_t value);
+    uint8_t inByte(uint16_t portnum);
+    uint16_t inWord(uint16_t portnum);
 
-		void setPortRedirector(uint16_t startPort, uint16_t endPort, PortInterface* redirector);
+    void setPortRedirector(uint16_t startPort, uint16_t endPort, PortInterface *redirector);
 
-		uint8_t portram[NumPorts] = {0};
+    uint8_t portram[NumPorts] = {0};
 
-	private:
-		VM& vm;
+  private:
+    VM &vm;
 
-		PortInterface* portHandlers[NumPorts];
-	};
+    PortInterface *portHandlers[NumPorts];
+  };
 }

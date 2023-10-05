@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -20,7 +20,6 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 
 #include "DriveManager.h"
 #include "Debugger.h"
@@ -41,220 +40,213 @@ uint64_t starttick, endtick;
 uint8_t cgaonly = 0;
 uint8_t use_debug_console = 0;
 
-extern void isa_ne2000_init (uint16_t baseport, uint8_t irq);
+extern void isa_ne2000_init(uint16_t baseport, uint8_t irq);
 
 #ifdef NETWORKING_ENABLED
 extern void initpcap();
 extern void dispatch();
 #endif
 
-void inithardware() {
+void inithardware()
+{
 #ifdef NETWORKING_ENABLED
-	if (ethif != 254) initpcap();
+  if (ethif != 254)
+    initpcap();
 #endif
 #ifndef NETWORKING_OLDCARD
-	log(Log, "[VM] Novell NE2000 ethernet adapter");
-	isa_ne2000_init (0x300, 6);
+  log(Log, "[VM] Novell NE2000 ethernet adapter");
+  isa_ne2000_init(0x300, 6);
 #endif
 }
 
 class MainEmulationTask : public Task
 {
-	VM& vm;
+  VM &vm;
 
 public:
-	MainEmulationTask(VM& inVM) : vm(inVM) {}
+  MainEmulationTask(VM &inVM) : vm(inVM) {}
 
-	int update() override
-	{
-		int delay = 0;
-		//uint32_t execloops;
-		//uint16_t timing_interval;
-		
-		//THIS CODE NEEDS TO BE MORE ACCURATE
-		
-		if (!vm.config.cpuSpeed)	{
-			//vm.cpu.exec86(4700, vm.config.cpuTiming); //4.7Mhz
-			//vm.cpu.exec86(10000, vm.config.cpuTiming); //10Mhz
-			vm.cpu.exec86(100000, vm.config.cpuTiming); //100Mhz
-		}	else {
-			//vm.cpu.exec86(vm.config.cpuSpeed / 100); //100 rpi
-			//vm.cpu.exec86(vm.config.cpuSpeed / 1000); //win32 (4700000 = 4.7Mhz)
-			#ifdef _WIN32
-			vm.cpu.exec86(vm.config.cpuSpeed * 100, vm.config.cpuTiming); //10Mhz win32
-			#elif defined(ARDUINO)
-			vm.cpu.exec86(vm.config.cpuSpeed * 100, vm.config.cpuTiming); //10Mhz
-			#else
-			vm.cpu.exec86(vm.config.cpuSpeed * 100, vm.config.cpuTiming); //10Mhz RPi
-			#endif
-			
-			if (vm.config.enableAudio) {
-				vm.audio.tick();
-				if (vm.config.slowSystem) {
-					vm.audio.tick();
-					vm.audio.tick();
-				}
-				/*
-				while (!vm.audio.isAudioBufferFilled()) {
-					vm.timing.tick(vm.config.slowSystem);
-					vm.audio.tick();
-					if (vm.config.slowSystem) {
-						vm.audio.tick();
-						vm.audio.tick();
-					}
-				}
-				*/
-			}
-			
-			#ifdef _WIN32
-			delay = 1;
-			#else
-			//delay = 0;	
-			#endif
-		}
-		return delay;
-	}
+  int update() override
+  {
+    int delay = 0;
+    // uint32_t execloops;
+    // uint16_t timing_interval;
+
+    // THIS CODE NEEDS TO BE MORE ACCURATE
+
+    if (!vm.config.cpuSpeed)
+    {
+      // vm.cpu.exec86(4700, vm.config.cpuTiming); //4.7Mhz
+      // vm.cpu.exec86(10000, vm.config.cpuTiming); //10Mhz
+      vm.cpu.exec86(100000, vm.config.cpuTiming); // 100Mhz
+    }
+    else
+    {
+// vm.cpu.exec86(vm.config.cpuSpeed / 100); //100 rpi
+// vm.cpu.exec86(vm.config.cpuSpeed / 1000); //win32 (4700000 = 4.7Mhz)
+#ifdef _WIN32
+      vm.cpu.exec86(vm.config.cpuSpeed * 100, vm.config.cpuTiming); // 10Mhz win32
+#elif defined(ARDUINO)
+      vm.cpu.exec86(vm.config.cpuSpeed * 100, vm.config.cpuTiming); // 10Mhz
+#else
+      vm.cpu.exec86(vm.config.cpuSpeed * 100, vm.config.cpuTiming); // 10Mhz RPi
+#endif
+
+      if (vm.config.enableAudio)
+      {
+        vm.audio.tick();
+        if (vm.config.slowSystem)
+        {
+          vm.audio.tick();
+          vm.audio.tick();
+        }
+        /*
+        while (!vm.audio.isAudioBufferFilled()) {
+          vm.timing.tick(vm.config.slowSystem);
+          vm.audio.tick();
+          if (vm.config.slowSystem) {
+            vm.audio.tick();
+            vm.audio.tick();
+          }
+        }
+        */
+      }
+
+#ifdef _WIN32
+      delay = 1;
+#else
+                                                                    // delay = 0;
+#endif
+    }
+    return delay;
+  }
 };
 
 #ifdef DEBUG_CONSOLE
 #ifdef _WIN32
-void runconsole (void *dummy);
+void runconsole(void *dummy);
 #else
-void *runconsole (void *dummy);
+void *runconsole(void *dummy);
 #endif
 #endif
 
-VM::VM(Config& inConfig)
-	: config(inConfig)
-	, cpu(*this)
-	, memory(*this)
-	, ports(*this)
-	, pic(*this)
-	, pit(*this)
-	, ppi(*this)
-	, dma(*this)
-	, drives(*this)
-	, video(*this)
-	, audio(*this)
-	, adlib(*this)
-	, blaster(*this, adlib)
-	, soundSource(*this)
-	, pcSpeaker(*this)
-	, uartcom1(*this)
-	, mouse(*this)
-	, renderer(*this)
-	, input(*this)
-	, timing(*this)
-	, taskManager(*this)
-	, running(true)
+VM::VM(Config &inConfig)
+    : config(inConfig), cpu(*this), memory(*this), ports(*this), pic(*this), pit(*this), ppi(*this), dma(*this), drives(*this), video(*this), audio(*this), adlib(*this), blaster(*this, adlib), soundSource(*this), pcSpeaker(*this), uartcom1(*this), mouse(*this), renderer(*this), input(*this), timing(*this), taskManager(*this), running(true)
 {
-	log(Log, "[VM] Constructed");
+  log(Log, "[VM] Constructed");
 }
 
 bool VM::init()
 {
-	log(Log, "[VM] Initialized");
+  log(Log, "[VM] Initialized");
 
-	if (config.enableDebugger) debugger = new Debugger(*this);
-	
-	//config.hostSystemInterface.getFrameBuffer();
-	renderer.init(config.framebuffer.width, config.framebuffer.height);
-	audio.init();
+  if (config.enableDebugger)
+    debugger = new Debugger(*this);
 
-	if (config.usePCSpeaker) pcSpeaker.init();
-	if (config.useAdlib) adlib.init();
-	if (config.useSoundBlaster) blaster.init();	
-	if (config.useDisneySoundSource) soundSource.init();
-	
-	dma.init();
+  // config.hostSystemInterface.getFrameBuffer();
+  renderer.init(config.framebuffer.width, config.framebuffer.height);
+  audio.init();
 
-	uartcom1.init(config.mouse.port, config.mouse.irq, nullptr, nullptr, nullptr, nullptr);
-	mouse.init();
+  if (config.usePCSpeaker)
+    pcSpeaker.init();
+  if (config.useAdlib)
+    adlib.init();
+  if (config.useSoundBlaster)
+    blaster.init();
+  if (config.useDisneySoundSource)
+    soundSource.init();
 
-	timing.init();
+  dma.init();
 
-	if (!config.biosFile || !config.biosFile->isValid())
-	{
-		log(LogFatal, "[VM] Failed to load Machine BIOS file!");
-		return false;
-	}
+  uartcom1.init(config.mouse.port, config.mouse.irq, nullptr, nullptr, nullptr, nullptr);
+  mouse.init();
 
-	if (!config.asciiFile || !config.asciiFile->isValid())
-	{
-		log(LogFatal, "[VM] Failed to load Video ASCII Char file!");
-		return false;
-	}
+  timing.init();
 
-	uint32_t biosSize = (uint32_t) config.biosFile->getSize();
-	memory.loadBinary((uint32_t)(DEFAULT_RAM_SIZE - biosSize), config.biosFile, 1, MemArea_BIOS);
+  if (!config.biosFile || !config.biosFile->isValid())
+  {
+    log(LogFatal, "[VM] Failed to load Machine BIOS file!");
+    return false;
+  }
 
-	//memory.loadBinary(0xA0000UL, config.asciiFile, 1);
-	//memory.loadBinary(0xA0000UL, config.asciiFile, MemArea_VGABIOS);
+  if (!config.asciiFile || !config.asciiFile->isValid())
+  {
+    log(LogFatal, "[VM] Failed to load Video ASCII Char file!");
+    return false;
+  }
+
+  uint32_t biosSize = (uint32_t)config.biosFile->getSize();
+  memory.loadBinary((uint32_t)(DEFAULT_RAM_SIZE - biosSize), config.biosFile, 1, MemArea_BIOS);
+
+  // memory.loadBinary(0xA0000UL, config.asciiFile, 1);
+  // memory.loadBinary(0xA0000UL, config.asciiFile, MemArea_VGABIOS);
 
 #ifdef DISK_CONTROLLER_ATA
-	if (!memory.loadBinary(0xD0000UL, config.ideRomFile, 1))
-	{
-		log(LogFatal, "[VM] Failed to load Disk Controller ROM file!");
-		return false;
-	}
+  if (!memory.loadBinary(0xD0000UL, config.ideRomFile, 1))
+  {
+    log(LogFatal, "[VM] Failed to load Disk Controller ROM file!");
+    return false;
+  }
 #endif
-	if (biosSize <= 8192) 
-	{
-		log(Log, "[VM] Machine ROM biosSize <= 8192 Loading Basic Boot ROM");
-		if (!memory.loadBinary(0xF6000UL, config.romBasicFile, 0)) {
-			log(Log, "[VM] Failed to load Basic Boot ROM file!");
-		}
-		if (!memory.loadBinary(0xC0000UL, config.videoRomFile, 1, MemArea_VGABIOS))
-		{
-			log(LogFatal, "[VM] Failed to load Video ROM file!");
-			return false;
-		}
-	}
+  if (biosSize <= 8192)
+  {
+    log(Log, "[VM] Machine ROM biosSize <= 8192 Loading Basic Boot ROM");
+    if (!memory.loadBinary(0xF6000UL, config.romBasicFile, 0))
+    {
+      log(Log, "[VM] Failed to load Basic Boot ROM file!");
+    }
+    if (!memory.loadBinary(0xC0000UL, config.videoRomFile, 1, MemArea_VGABIOS))
+    {
+      log(LogFatal, "[VM] Failed to load Video ROM file!");
+      return false;
+    }
+  }
 
-	if (debugger)
-	{
-		debugger->flagRegion(0x400, 256, MemArea_BDA);
-		debugger->flagRegion(0, 0x3FF, MemArea_InterruptTable);
-		//debugger->addDataBreakpoint(0x487);
-	}
-	
-	video.init();
+  if (debugger)
+  {
+    debugger->flagRegion(0x400, 256, MemArea_BDA);
+    debugger->flagRegion(0, 0x3FF, MemArea_InterruptTable);
+    // debugger->addDataBreakpoint(0x487);
+  }
 
-	drives.insertDisk(DRIVE_A, config.diskDriveA);
-	drives.insertDisk(DRIVE_B, config.diskDriveB);
-	drives.insertDisk(DRIVE_C, config.diskDriveC);
-	drives.insertDisk(DRIVE_D, config.diskDriveD);
+  video.init();
 
-	if (config.bootDrive == 254)
-	{
-		if (drives.isDiskInserted(DRIVE_C))
-			config.bootDrive = DRIVE_C;
-		else if (drives.isDiskInserted(DRIVE_A))
-			config.bootDrive = DRIVE_A;
-		else
-			config.bootDrive = 0xFF; //ROM BASIC fallback
-	}
+  drives.insertDisk(DRIVE_A, config.diskDriveA);
+  drives.insertDisk(DRIVE_B, config.diskDriveB);
+  drives.insertDisk(DRIVE_C, config.diskDriveC);
+  drives.insertDisk(DRIVE_D, config.diskDriveD);
 
-	log(Log, "[VM] Resetting CPU..");
-	running = true;
-	cpu.reset86();
+  if (config.bootDrive == 254)
+  {
+    if (drives.isDiskInserted(DRIVE_C))
+      config.bootDrive = DRIVE_C;
+    else if (drives.isDiskInserted(DRIVE_A))
+      config.bootDrive = DRIVE_A;
+    else
+      config.bootDrive = 0xFF; // ROM BASIC fallback
+  }
 
-	inithardware();
+  log(Log, "[VM] Resetting CPU..");
+  running = true;
+  cpu.reset86();
 
-	#ifdef DEBUG_CONSOLE
-	log(Log, "[VM] Debug Console Enabled");
-	if (use_debug_console) {
-	#ifdef _WIN32
-		_beginthread(runconsole, 0, (void*) this);
-	#else
-		pthread_create(&consolethread, NULL, (void *)runconsole, (void*) this);
-	#endif
-	}
-	#endif
+  inithardware();
 
-	taskManager.addTask(new MainEmulationTask(*this));
-	
-	return true;
+#ifdef DEBUG_CONSOLE
+  log(Log, "[VM] Debug Console Enabled");
+  if (use_debug_console)
+  {
+#ifdef _WIN32
+    _beginthread(runconsole, 0, (void *)this);
+#else
+    pthread_create(&consolethread, NULL, (void *)runconsole, (void *)this);
+#endif
+  }
+#endif
+
+  taskManager.addTask(new MainEmulationTask(*this));
+
+  return true;
 }
 
 VM::~VM()
@@ -263,14 +255,14 @@ VM::~VM()
 
 bool VM::simulate()
 {
-		input.tick();
+  input.tick();
 
-		#ifdef NETWORKING_ENABLED
-		if (ethif < 254) dispatch();
-		#endif
+#ifdef NETWORKING_ENABLED
+  if (ethif < 254)
+    dispatch();
+#endif
 
-		taskManager.tick();
+  taskManager.tick();
 
-	return running;
+  return running;
 }
-

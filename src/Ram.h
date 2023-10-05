@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -25,38 +25,36 @@
 #include "Config.h"
 #include "Types.h"
 
-#define MEMORY_RANGE		0x100000
-#define MEMORY_MASK			0x0FFFFF
+#define MEMORY_RANGE 0x100000
+#define MEMORY_MASK 0x0FFFFF
 
 namespace Faux86
 {
-	class VM;
-	class DiskInterface;
+  class VM;
+  class DiskInterface;
 
-	class Memory
-	{
-	public:
-		Memory(VM& inVM);
-		~Memory();
+  class Memory
+  {
+  public:
+    Memory(VM &inVM);
+    ~Memory();
 
-		void reset();
+    void reset();
 
-		uint16_t readWord(uint32_t addr32);
-		uint8_t readByte(uint32_t addr32);
-		void writeWord(uint32_t addr32, uint16_t value);
-		void writeByte(uint32_t addr32, uint8_t value);
+    uint16_t readWord(uint32_t addr32);
+    uint8_t readByte(uint32_t addr32);
+    void writeWord(uint32_t addr32, uint16_t value);
+    void writeByte(uint32_t addr32, uint8_t value);
 
-		void memory_mapRegister(uint32_t start, uint32_t len, uint8_t* readb, uint8_t* writeb);
-		void memory_mapCallbackRegister(uint32_t start, uint32_t count, uint8_t(*readb)(void*, uint32_t), void (*writeb)(void*, uint32_t, uint8_t), void* udata);
-		
-		uint32_t loadBinary(uint32_t addr32, DiskInterface* file, uint8_t roflag, uint32_t debugFlags = 0);
+    void memory_mapRegister(uint32_t start, uint32_t len, uint8_t *readb, uint8_t *writeb);
+    void memory_mapCallbackRegister(uint32_t start, uint32_t count, uint8_t (*readb)(void *, uint32_t), void (*writeb)(void *, uint32_t, uint8_t), void *udata);
 
-		uint8_t* RAM;
-		uint8_t* readonly;
+    uint32_t loadBinary(uint32_t addr32, DiskInterface *file, uint8_t roflag, uint32_t debugFlags = 0);
 
-	private:
-		VM& vm;
-	};
+    uint8_t *RAM;
+    uint8_t *readonly;
+
+  private:
+    VM &vm;
+  };
 }
-
-

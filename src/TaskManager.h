@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -27,42 +27,42 @@
 
 namespace Faux86
 {
-	class VM;
-	class TimerInterface;
+  class VM;
+  class TimerInterface;
 
-	class Task
-	{
-	public:
-		virtual void begin() {}
-		virtual int update() = 0;
-	};
+  class Task
+  {
+  public:
+    virtual void begin() {}
+    virtual int update() = 0;
+  };
 
-	class TaskManager
-	{
-	public:
-		TaskManager(VM& inVM);
-		~TaskManager();
+  class TaskManager
+  {
+  public:
+    TaskManager(VM &inVM);
+    ~TaskManager();
 
-		void addTask(Task* task);
-		void tick();
-		void haltAll();
+    void addTask(Task *task);
+    void tick();
+    void haltAll();
 
-	private:
-		struct TaskData 
-		{
-			TimerInterface* timer = nullptr;
-			Task* task = nullptr;
-			uint64_t nextTickTime = 0;
-			volatile bool running = false;
-			uintptr_t thread = 0;
-		};
+  private:
+    struct TaskData
+    {
+      TimerInterface *timer = nullptr;
+      Task *task = nullptr;
+      uint64_t nextTickTime = 0;
+      volatile bool running = false;
+      uintptr_t thread = 0;
+    };
 
-		static void updateTaskThreaded(void* taskData);
+    static void updateTaskThreaded(void *taskData);
 
-		static constexpr int maxTasks = 3;
-		int numTasks = 0;
-		TaskData tasks[maxTasks];
+    static constexpr int maxTasks = 3;
+    int numTasks = 0;
+    TaskData tasks[maxTasks];
 
-		VM& vm;
-	};
+    VM &vm;
+  };
 }

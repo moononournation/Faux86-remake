@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -29,61 +29,59 @@
 
 namespace Faux86
 {
-	class VM;
-	class Adlib;
+  class VM;
+  class Adlib;
 
-	class SoundBlaster : public SoundCardInterface, PortInterface
-	{
-	public:
-		SoundBlaster(VM& inVM, Adlib& inAdlib);
+  class SoundBlaster : public SoundCardInterface, PortInterface
+  {
+  public:
+    SoundBlaster(VM &inVM, Adlib &inAdlib);
 
-		void init() override;
-		void tick() override;
+    void init() override;
+    void tick() override;
 
-		int16_t generateSample() override;
+    int16_t generateSample() override;
 
-		uint64_t sampleticks = 0;
-		uint16_t samplerate = 0;
+    uint64_t sampleticks = 0;
+    uint16_t samplerate = 0;
 
-		virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
-		virtual bool portReadHandler(uint16_t portnum, uint8_t& outValue) override;
+    virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
+    virtual bool portReadHandler(uint16_t portnum, uint8_t &outValue) override;
 
-	private:
-		void cmd(uint8_t value);
-		void bufNewData(uint8_t value);
-		void setsampleticks();
+  private:
+    void cmd(uint8_t value);
+    void bufNewData(uint8_t value);
+    void setsampleticks();
 
-		VM& vm;
-		Adlib& adlib;
+    VM &vm;
+    Adlib &adlib;
 
-		uint8_t mem[1024];
-		uint16_t memptr = 0;
-		uint8_t dspmaj = 0;
-		uint8_t dspmin = 0;
-		uint8_t speakerstate = 0;
-		uint8_t lastresetval = 0;
-		uint8_t lastcmdval = 0;
-		uint8_t lasttestval = 0;
-		uint8_t waitforarg = 0;
-		uint8_t paused8 = 0;
-		uint8_t paused16 = 0;
-		uint8_t sample = 0;
-		uint8_t sbirq = 0;
-		uint8_t sbdma = 0;
-		uint8_t usingdma = 0;
-		uint8_t maskdma = 0;
-		uint8_t useautoinit = 0;
-		uint32_t blocksize = 0;
-		uint32_t blockstep = 0;
+    uint8_t mem[1024];
+    uint16_t memptr = 0;
+    uint8_t dspmaj = 0;
+    uint8_t dspmin = 0;
+    uint8_t speakerstate = 0;
+    uint8_t lastresetval = 0;
+    uint8_t lastcmdval = 0;
+    uint8_t lasttestval = 0;
+    uint8_t waitforarg = 0;
+    uint8_t paused8 = 0;
+    uint8_t paused16 = 0;
+    uint8_t sample = 0;
+    uint8_t sbirq = 0;
+    uint8_t sbdma = 0;
+    uint8_t usingdma = 0;
+    uint8_t maskdma = 0;
+    uint8_t useautoinit = 0;
+    uint32_t blocksize = 0;
+    uint32_t blockstep = 0;
 
-		uint8_t mixer[256];
-		uint8_t mixerindex = 0;
+    uint8_t mixer[256];
+    uint8_t mixerindex = 0;
 
-		/*struct {
-			uint8_t index = 0;
-			uint8_t reg[256];
-		} mixer;*/
-	};
+    /*struct {
+      uint8_t index = 0;
+      uint8_t reg[256];
+    } mixer;*/
+  };
 }
-
-

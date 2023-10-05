@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -26,46 +26,45 @@
 #include "Audio.h"
 #include "Ports.h"
 
-//#ifdef USE_NUKED_OPL
-	#include "opl3.h"
-//#else
-	#include "opl.h"
-//#endif
+// #ifdef USE_NUKED_OPL
+#include "opl3.h"
+// #else
+#include "opl.h"
+// #endif
 
 namespace Faux86
 {
-	class VM;
+  class VM;
 
-	class Adlib : public SoundCardInterface, PortInterface
-	{
-	public:
-		Adlib(VM& inVM);
+  class Adlib : public SoundCardInterface, PortInterface
+  {
+  public:
+    Adlib(VM &inVM);
 
-		void init() override;
-		void tick() override;
+    void init() override;
+    void tick() override;
 
-		int16_t generateSample() override;
+    int16_t generateSample() override;
 
-		// on the Sound Blaster Pro, ports (base+0) and (base+1) are for
-		// the OPL FM music chips, and are also mirrored at (base+8) (base+9)
-		// as well as 0x388 and 0x389 to remain compatible with the older adlib cards
+    // on the Sound Blaster Pro, ports (base+0) and (base+1) are for
+    // the OPL FM music chips, and are also mirrored at (base+8) (base+9)
+    // as well as 0x388 and 0x389 to remain compatible with the older adlib cards
 
-		virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
-		virtual bool portReadHandler(uint16_t portnum, uint8_t& outValue) override;
-		
-		bool useOPL3;
+    virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
+    virtual bool portReadHandler(uint16_t portnum, uint8_t &outValue) override;
 
-	private:
-		VM& vm;
+    bool useOPL3;
 
-		//#ifdef USE_NUKED_OPL
-		opl3_chip opl3;
-		//#else
-		//opl3_chip opl3;
-		//#endif
-		
-		uint8_t targetRegister = 0;
-		uint8_t timerRegister = 0;
-	};
+  private:
+    VM &vm;
+
+    // #ifdef USE_NUKED_OPL
+    opl3_chip opl3;
+    // #else
+    // opl3_chip opl3;
+    // #endif
+
+    uint8_t targetRegister = 0;
+    uint8_t timerRegister = 0;
+  };
 }
-

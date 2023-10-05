@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -27,25 +27,25 @@
 #include "../src/Config.h"
 #include "../src/DriveManager.h"
 
-#define fopen_s(fp, fmt, mode) *(fp)=fopen( (fmt), (mode))
- 
+#define fopen_s(fp, fmt, mode) *(fp) = fopen((fmt), (mode))
+
 namespace Faux86
 {
-	class StdioDiskInterface : public DiskInterface
-	{
-	public:
-		StdioDiskInterface(const char* filename);
-		virtual ~StdioDiskInterface();
-		virtual int read(uint8_t *buffer, unsigned count) override;
-		virtual int write(const uint8_t *buffer, unsigned count) override;
+  class StdioDiskInterface : public DiskInterface
+  {
+  public:
+    StdioDiskInterface(const char *filename);
+    virtual ~StdioDiskInterface();
+    virtual int read(uint8_t *buffer, unsigned count) override;
+    virtual int write(const uint8_t *buffer, unsigned count) override;
 
-		virtual uint64_t seek(uint64_t offset) override;
-		virtual uint64_t getSize() override;
+    virtual uint64_t seek(uint64_t offset) override;
+    virtual uint64_t getSize() override;
 
-		virtual bool isValid() override { return diskFile != nullptr; }
+    virtual bool isValid() override { return diskFile != nullptr; }
 
-	private:
-		FILE* diskFile;
-		uint64_t diskSize;
-	};
+  private:
+    FILE *diskFile;
+    uint64_t diskSize;
+  };
 }

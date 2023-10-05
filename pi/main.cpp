@@ -23,28 +23,28 @@
 
 #include "kernel.h"
 
-int main (void)
+int main(void)
 {
-	// cannot return here because some destructors used in CKernel are not implemented
+  // cannot return here because some destructors used in CKernel are not implemented
 
-	CKernel Kernel;
-	if (!Kernel.Initialize ())
-	{
-		halt ();
-		return EXIT_HALT;
-	}
-	
-	TShutdownMode ShutdownMode = Kernel.Run ();
+  CKernel Kernel;
+  if (!Kernel.Initialize())
+  {
+    halt();
+    return EXIT_HALT;
+  }
 
-	switch (ShutdownMode)
-	{
-	case ShutdownReboot:
-		reboot ();
-		return EXIT_REBOOT;
+  TShutdownMode ShutdownMode = Kernel.Run();
 
-	case ShutdownHalt:
-	default:
-		halt ();
-		return EXIT_HALT;
-	}
+  switch (ShutdownMode)
+  {
+  case ShutdownReboot:
+    reboot();
+    return EXIT_REBOOT;
+
+  case ShutdownHalt:
+  default:
+    halt();
+    return EXIT_HALT;
+  }
 }

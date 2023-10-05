@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -27,38 +27,37 @@
 
 namespace Faux86
 {
-	class VM;
+  class VM;
 
-	class TimingScheduler
-	{
-	public:
-		TimingScheduler(VM& inVM);
-		
-		void init();
-		void tick(bool bSkipDraw = false);
+  class TimingScheduler
+  {
+  public:
+    TimingScheduler(VM &inVM);
 
-		uint64_t getHostFreq();
-		uint64_t getTicks();
-		uint64_t getMS();
-		uint64_t getElapsed(uint64_t prevTick);
-		uint64_t getElapsedMS(uint64_t prevTick);
+    void init();
+    void tick(bool bSkipDraw = false);
 
-		uint64_t sampleticks;
-		uint64_t tickgap;
-		uint64_t i8253tickgap;
+    uint64_t getHostFreq();
+    uint64_t getTicks();
+    uint64_t getMS();
+    uint64_t getElapsed(uint64_t prevTick);
+    uint64_t getElapsedMS(uint64_t prevTick);
 
-	private:
-		uint64_t lasttick, curtick, lasti8253tick, scanlinetiming, lastscanlinetick, curscanline = 0;
-		uint64_t lastsampletick, ssourceticks, lastssourcetick, adlibticks, lastadlibtick, lastblastertick = 0;
-		uint64_t speakerticks, lastspeakertick = 0;
-		uint64_t mouseticks, lastmousetick = 0;
-		uint64_t drawticks, lastdrawtick = 0;
-		uint64_t dramticks, lastdramtick = 0;
-		uint64_t vgacursorticks, lastvgacursortick = 0;
-		uint64_t vgahblanktiming, vgahblankendtiming = 0;
-		//uint16_t pit0counter = 65535;
+    uint64_t sampleticks;
+    uint64_t tickgap;
+    uint64_t i8253tickgap;
 
-		VM& vm;
-	};
+  private:
+    uint64_t lasttick, curtick, lasti8253tick, scanlinetiming, lastscanlinetick, curscanline = 0;
+    uint64_t lastsampletick, ssourceticks, lastssourcetick, adlibticks, lastadlibtick, lastblastertick = 0;
+    uint64_t speakerticks, lastspeakertick = 0;
+    uint64_t mouseticks, lastmousetick = 0;
+    uint64_t drawticks, lastdrawtick = 0;
+    uint64_t dramticks, lastdramtick = 0;
+    uint64_t vgacursorticks, lastvgacursortick = 0;
+    uint64_t vgahblanktiming, vgahblankendtiming = 0;
+    // uint16_t pit0counter = 65535;
+
+    VM &vm;
+  };
 }
-

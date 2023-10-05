@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -26,82 +26,102 @@
 
 using namespace Faux86;
 
-PCSpeaker::PCSpeaker(VM& inVM)
-	: vm(inVM)
+PCSpeaker::PCSpeaker(VM &inVM)
+    : vm(inVM)
 {
-	log(Log,"[PCSPEAKER] Constructed");
+  log(Log, "[PCSPEAKER] Constructed");
 }
 
-int16_t PCSpeaker::generateSample() 
+int16_t PCSpeaker::generateSample()
 {
-	//if (!vm->config->usePCSpeaker) return 0;
-	if (!enabled) return 0;
-	
-	int16_t speakervalue;
-	//float chanfreq = vm.pit.chanfreq[2];
+  // if (!vm->config->usePCSpeaker) return 0;
+  if (!enabled)
+    return 0;
 
-	speakerfullstep = (uint64_t) ( (float)vm.config.audio.sampleRate / (float)vm.pit.chanfreq[2] );
-	if (speakerfullstep < 2) speakerfullstep = 2;
-	
-	speakerhalfstep = speakerfullstep >> 1;
-	//if (speakercurstep < speakerhalfstep) speakervalue = 32;
-	//else speakervalue = -32;
-	if (speakercurstep < speakerhalfstep) speakervalue = 32;
-	else speakervalue = -32;
+  int16_t speakervalue;
+  // float chanfreq = vm.pit.chanfreq[2];
 
-	speakercurstep = (speakercurstep + 1) % speakerfullstep;
-	return (speakervalue);
+  speakerfullstep = (uint64_t)((float)vm.config.audio.sampleRate / (float)vm.pit.chanfreq[2]);
+  if (speakerfullstep < 2)
+    speakerfullstep = 2;
+
+  speakerhalfstep = speakerfullstep >> 1;
+  // if (speakercurstep < speakerhalfstep) speakervalue = 32;
+  // else speakervalue = -32;
+  if (speakercurstep < speakerhalfstep)
+    speakervalue = 32;
+  else
+    speakervalue = -32;
+
+  speakercurstep = (speakercurstep + 1) % speakerfullstep;
+  return (speakervalue);
 }
 
-void PCSpeaker::setGateState(uint8_t gate, uint8_t value) {
-	//debug_notice("[pcspeaker] pcspeaker_setGateState request");
-	speakergate[gate] = value;
+void PCSpeaker::setGateState(uint8_t gate, uint8_t value)
+{
+  // debug_notice("[pcspeaker] pcspeaker_setGateState request");
+  speakergate[gate] = value;
 }
 
-void PCSpeaker::selectGate(uint8_t value) {
-	//debug_notice("[pcspeaker] pcspeaker_selectGate request");
-	speakergateselect = value;
+void PCSpeaker::selectGate(uint8_t value)
+{
+  // debug_notice("[pcspeaker] pcspeaker_selectGate request");
+  speakergateselect = value;
 }
 
-void PCSpeaker::tick() {	
-	if (speakergateselect == PC_SPEAKER_USE_TIMER2) {
-		if (speakergate[PC_SPEAKER_GATE_TIMER2] && speakergate[PC_SPEAKER_GATE_DIRECT]) {
-			if (speakeramplitude < 15000) {
-				speakeramplitude += PC_SPEAKER_MOVEMENT;
-			}
-		}
-		else {
-			if (speakeramplitude > 0) {
-				speakeramplitude -= PC_SPEAKER_MOVEMENT;
-			}
-		}
-		//speakeramplitude = 0;
-	}
-	else {
-		if (speakergate[PC_SPEAKER_GATE_DIRECT]) {
-			if (speakeramplitude < 15000) {
-				speakeramplitude += PC_SPEAKER_MOVEMENT;
-			}
-		}
-		else {
-			if (speakeramplitude > 0) {
-				speakeramplitude -= PC_SPEAKER_MOVEMENT;
-			}
-		}
-	}
-	//log(Log,"[PCSPEAKER] speakeramplitude %lu",speakeramplitude);
-	if (speakeramplitude > 15000) speakeramplitude = 15000;
-	if (speakeramplitude < 0) speakeramplitude = 0;
+void PCSpeaker::tick()
+{
+  if (speakergateselect == PC_SPEAKER_USE_TIMER2)
+  {
+    if (speakergate[PC_SPEAKER_GATE_TIMER2] && speakergate[PC_SPEAKER_GATE_DIRECT])
+    {
+      if (speakeramplitude < 15000)
+      {
+        speakeramplitude += PC_SPEAKER_MOVEMENT;
+      }
+    }
+    else
+    {
+      if (speakeramplitude > 0)
+      {
+        speakeramplitude -= PC_SPEAKER_MOVEMENT;
+      }
+    }
+    // speakeramplitude = 0;
+  }
+  else
+  {
+    if (speakergate[PC_SPEAKER_GATE_DIRECT])
+    {
+      if (speakeramplitude < 15000)
+      {
+        speakeramplitude += PC_SPEAKER_MOVEMENT;
+      }
+    }
+    else
+    {
+      if (speakeramplitude > 0)
+      {
+        speakeramplitude -= PC_SPEAKER_MOVEMENT;
+      }
+    }
+  }
+  // log(Log,"[PCSPEAKER] speakeramplitude %lu",speakeramplitude);
+  if (speakeramplitude > 15000)
+    speakeramplitude = 15000;
+  if (speakeramplitude < 0)
+    speakeramplitude = 0;
 }
 
-void PCSpeaker::init() {
-	speakergateselect = PC_SPEAKER_GATE_DIRECT;
-	//timing_addTimer(tick, spk, SAMPLE_RATE, TIMING_ENABLED, "[SPEAKER] callback");
+void PCSpeaker::init()
+{
+  speakergateselect = PC_SPEAKER_GATE_DIRECT;
+  // timing_addTimer(tick, spk, SAMPLE_RATE, TIMING_ENABLED, "[SPEAKER] callback");
 }
 
-int16_t PCSpeaker::getSample() {
-	//return 0;
-	//return speakeramplitude / 3;
-	return speakeramplitude;
-	
+int16_t PCSpeaker::getSample()
+{
+  // return 0;
+  // return speakeramplitude / 3;
+  return speakeramplitude;
 }

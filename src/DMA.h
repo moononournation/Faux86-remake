@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -29,39 +29,37 @@
 
 namespace Faux86
 {
-	class VM;
+  class VM;
 
-	class DMA : public PortInterface
-	{
-	public:
-		DMA(VM& inVM);
+  class DMA : public PortInterface
+  {
+  public:
+    DMA(VM &inVM);
 
-		void init();
-		uint8_t read(uint8_t channel);
+    void init();
+    uint8_t read(uint8_t channel);
 
-		virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
-		virtual bool portReadHandler(uint16_t portnum, uint8_t& outValue) override;
+    virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
+    virtual bool portReadHandler(uint16_t portnum, uint8_t &outValue) override;
 
-	private:
+  private:
+    struct Channel
+    {
+      uint32_t page;
+      uint32_t addr;
+      uint32_t reload;
+      uint32_t count;
+      uint8_t direction;
+      uint8_t autoinit;
+      uint8_t writemode;
+      uint8_t masked;
+    };
 
-		struct Channel
-		{
-			uint32_t page;
-			uint32_t addr;
-			uint32_t reload;
-			uint32_t count;
-			uint8_t direction;
-			uint8_t autoinit;
-			uint8_t writemode;
-			uint8_t masked;
-		};
+    static constexpr int NumDMAChannels = 4;
 
-		static constexpr int NumDMAChannels = 4;
-
-		Channel channels[NumDMAChannels];
-		VM& vm;
-		uint8_t flipflop = 0;
-	};
+    Channel channels[NumDMAChannels];
+    VM &vm;
+    uint8_t flipflop = 0;
+  };
 
 }
-

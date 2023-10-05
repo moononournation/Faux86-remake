@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -26,27 +26,25 @@
 
 namespace Faux86
 {
-	class ProfileBlock
-	{
-	private:
-		const char* name;
-		TimingScheduler& scheduler;
-		uint64_t startTime;
+  class ProfileBlock
+  {
+  private:
+    const char *name;
+    TimingScheduler &scheduler;
+    uint64_t startTime;
 
-	public:
-		ProfileBlock(TimingScheduler& timing, const char* inName) :
-			name(inName),
-			scheduler(timing),
-			startTime(timing.getTicks())
-		{
-		}
+  public:
+    ProfileBlock(TimingScheduler &timing, const char *inName) : name(inName),
+                                                                scheduler(timing),
+                                                                startTime(timing.getTicks())
+    {
+    }
 
-		~ProfileBlock()
-		{
-			float elapsedTime = (float)(scheduler.getTicks() - startTime);
-			elapsedTime = elapsedTime * 1000.0f / scheduler.getHostFreq();
-			log(Log, "[PROFILER] %s took %f ms", name, elapsedTime);
-		}
-
-	};
+    ~ProfileBlock()
+    {
+      float elapsedTime = (float)(scheduler.getTicks() - startTime);
+      elapsedTime = elapsedTime * 1000.0f / scheduler.getHostFreq();
+      log(Log, "[PROFILER] %s took %f ms", name, elapsedTime);
+    }
+  };
 }

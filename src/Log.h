@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -24,9 +24,9 @@
 
 namespace Faux86
 {
-	class ILogInterface
-	{
-	public:
-		virtual void log(const char* message);
-	};
+  class ILogInterface
+  {
+  public:
+    virtual void log(const char *message);
+  };
 }

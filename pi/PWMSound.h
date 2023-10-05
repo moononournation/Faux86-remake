@@ -20,25 +20,25 @@
 */
 #pragma once
 
-//#include <circle/pwmsoundbasedevice.h>
+// #include <circle/pwmsoundbasedevice.h>
 #include <circle/sound/pwmsoundbasedevice.h>
 #include <circle/interrupt.h>
 #include <circle/types.h>
 
 namespace Faux86
 {
-	class Audio;
-	
-	class PWMSound : public CPWMSoundBaseDevice
-	{
-	public:
-		PWMSound (Audio& inAudio, CInterruptSystem *pInterrupt, unsigned nSampleRate);
+  class Audio;
 
-	protected:
-		static constexpr unsigned ChunkSize = 2048;
-		
-		virtual unsigned GetChunk (u32 *pBuffer, unsigned nChunkSize) override;
+  class PWMSound : public CPWMSoundBaseDevice
+  {
+  public:
+    PWMSound(Audio &inAudio, CInterruptSystem *pInterrupt, unsigned nSampleRate);
 
-		Audio& audio;
-	};
+  protected:
+    static constexpr unsigned ChunkSize = 2048;
+
+    virtual unsigned GetChunk(u32 *pBuffer, unsigned nChunkSize) override;
+
+    Audio &audio;
+  };
 }

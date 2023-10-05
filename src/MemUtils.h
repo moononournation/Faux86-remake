@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -35,10 +35,10 @@
 
 namespace Faux86
 {
-	namespace MemUtils
-	{
-		void* memmove(void *dst, const void *src, size_t len);
-		void* memcpy(void *dst, const void *src, size_t len);
-		void* memset(void *ptr, int ch, size_t len);
-	}
+  namespace MemUtils
+  {
+    void *memmove(void *dst, const void *src, size_t len);
+    void *memcpy(void *dst, const void *src, size_t len);
+    void *memset(void *ptr, int ch, size_t len);
+  }
 }

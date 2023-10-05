@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -31,118 +31,124 @@
 #include <circle/sched/scheduler.h>
 #endif
 
-
 #include "VM.h"
 #include "TaskManager.h"
 
 using namespace Faux86;
 
-TaskManager::TaskManager(VM& inVM) : vm(inVM)
+TaskManager::TaskManager(VM &inVM) : vm(inVM)
 {
-	log(Log,"[TASKMANAGER] Constructed");
+  log(Log, "[TASKMANAGER] Constructed");
 }
 
 void TaskManager::tick()
 {
-	#ifdef _WIN32
-	if (vm.config.singleThreaded) {
-		for (int n = 0; n < numTasks; n++) {
-			uint64_t currentTime = vm.timing.getTicks();
+#ifdef _WIN32
+  if (vm.config.singleThreaded)
+  {
+    for (int n = 0; n < numTasks; n++)
+    {
+      uint64_t currentTime = vm.timing.getTicks();
 
-			if (tasks[n].task && tasks[n].running && tasks[n].nextTickTime < currentTime) {
-				int result = tasks[n].task->update();
-				//tasks[n].nextTickTime = vm.timing.getTicks() + result * vm.timing.getHostFreq() / 1000;
-				tasks[n].nextTickTime = currentTime + result * vm.timing.getHostFreq() / 1000;
-			}
-		}
-	}
-	#else
-	for (int n = 0; n < numTasks; n++) {
-		uint64_t currentTime = vm.timing.getTicks();
+      if (tasks[n].task && tasks[n].running && tasks[n].nextTickTime < currentTime)
+      {
+        int result = tasks[n].task->update();
+        // tasks[n].nextTickTime = vm.timing.getTicks() + result * vm.timing.getHostFreq() / 1000;
+        tasks[n].nextTickTime = currentTime + result * vm.timing.getHostFreq() / 1000;
+      }
+    }
+  }
+#else
+  for (int n = 0; n < numTasks; n++)
+  {
+    uint64_t currentTime = vm.timing.getTicks();
 
-		if (tasks[n].task && tasks[n].running && tasks[n].nextTickTime < currentTime) {
-			int result = tasks[n].task->update();
-			//tasks[n].nextTickTime = vm.timing.getTicks() + result * vm.timing.getHostFreq() / 1000;
-			tasks[n].nextTickTime = currentTime + result * vm.timing.getHostFreq() / 1000;
-			//CScheduler::Get()->Yield();
-		}
-	}
-	#if defined(ARDUINO)
-	#if defined(ESP32)
-	delay(0);
-	#elif defined(ESP8266)
-	yield();
-	#endif
-	#else
-	CScheduler::Get()->Yield();
-	#endif
-	#endif // not _WIN32
+    if (tasks[n].task && tasks[n].running && tasks[n].nextTickTime < currentTime)
+    {
+      int result = tasks[n].task->update();
+      // tasks[n].nextTickTime = vm.timing.getTicks() + result * vm.timing.getHostFreq() / 1000;
+      tasks[n].nextTickTime = currentTime + result * vm.timing.getHostFreq() / 1000;
+      // CScheduler::Get()->Yield();
+    }
+  }
+#if defined(ARDUINO)
+#if defined(ESP32)
+  delay(0);
+#elif defined(ESP8266)
+  yield();
+#endif
+#else
+  CScheduler::Get()->Yield();
+#endif
+#endif // not _WIN32
 }
 
-void TaskManager::updateTaskThreaded(void* taskDataPtr)
+void TaskManager::updateTaskThreaded(void *taskDataPtr)
 {
-	#ifdef _WIN32
-	TaskData* taskData = (TaskData*)(taskDataPtr);
+#ifdef _WIN32
+  TaskData *taskData = (TaskData *)(taskDataPtr);
 
-	taskData->task->begin();
+  taskData->task->begin();
 
-	while (taskData->running)
-	{
-		int result = taskData->task->update();
-		if (result >= 0)
-		{
-			Sleep(result);
-			//Sleep(2);
-		}
-		else break;
-	}
-	#endif
+  while (taskData->running)
+  {
+    int result = taskData->task->update();
+    if (result >= 0)
+    {
+      Sleep(result);
+      // Sleep(2);
+    }
+    else
+      break;
+  }
+#endif
 }
 
-void TaskManager::addTask(Task* newTask)
+void TaskManager::addTask(Task *newTask)
 {
-	if (numTasks < maxTasks)
-	{
-		tasks[numTasks].timer = &vm.config.hostSystemInterface->getTimer();
-		tasks[numTasks].task = newTask;
-		tasks[numTasks].nextTickTime = 0;
-		tasks[numTasks].running = true;
+  if (numTasks < maxTasks)
+  {
+    tasks[numTasks].timer = &vm.config.hostSystemInterface->getTimer();
+    tasks[numTasks].task = newTask;
+    tasks[numTasks].nextTickTime = 0;
+    tasks[numTasks].running = true;
 
-		#ifdef _WIN32
-		if (!vm.config.singleThreaded)
-		{
-			tasks[numTasks].thread = _beginthread(TaskManager::updateTaskThreaded, 0, (void*)&tasks[numTasks]);
-		}
-		else
-		#endif
-		{
-			newTask->begin();
-		}
+#ifdef _WIN32
+    if (!vm.config.singleThreaded)
+    {
+      tasks[numTasks].thread = _beginthread(TaskManager::updateTaskThreaded, 0, (void *)&tasks[numTasks]);
+    }
+    else
+#endif
+    {
+      newTask->begin();
+    }
 
-		numTasks++;
-	}	else
-	{
-		log(Log,"[TASKMANAGER] TaskManager::addTask Too Many Tasks!");
-		return;
-	}
+    numTasks++;
+  }
+  else
+  {
+    log(Log, "[TASKMANAGER] TaskManager::addTask Too Many Tasks!");
+    return;
+  }
 }
 
 void TaskManager::haltAll()
 {
-	for (int n = 0; n < numTasks; n++)
-	{
-		tasks[n].running = false;
+  for (int n = 0; n < numTasks; n++)
+  {
+    tasks[n].running = false;
 
-		#ifdef _WIN32
-		if (tasks[n].thread)
-		{
-			TerminateThread((HANDLE)tasks[n].thread, 0);
-		}
-		#endif
-	}
+#ifdef _WIN32
+    if (tasks[n].thread)
+    {
+      TerminateThread((HANDLE)tasks[n].thread, 0);
+    }
+#endif
+  }
 }
 
 TaskManager::~TaskManager()
 {
-	haltAll();
+  haltAll();
 }

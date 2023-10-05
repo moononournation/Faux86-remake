@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -28,33 +28,32 @@
 
 namespace Faux86
 {
-	class VM;
+  class VM;
 
-	class DisneySoundSource : public SoundCardInterface, PortInterface
-	{
-	public:
-		DisneySoundSource(VM& inVM);
+  class DisneySoundSource : public SoundCardInterface, PortInterface
+  {
+  public:
+    DisneySoundSource(VM &inVM);
 
-		void init() override;
-		void tick() override;
+    void init() override;
+    void tick() override;
 
-		int16_t generateSample() override;
+    int16_t generateSample() override;
 
-		virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
-		virtual bool portReadHandler(uint16_t portnum, uint8_t& outValue) override;
+    virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
+    virtual bool portReadHandler(uint16_t portnum, uint8_t &outValue) override;
 
-	private:
-		static constexpr int bufferLength = 16;
+  private:
+    static constexpr int bufferLength = 16;
 
-		uint8_t ssourcefull();
-		void putssourcebyte(uint8_t value);
+    uint8_t ssourcefull();
+    void putssourcebyte(uint8_t value);
 
-		VM& vm;
+    VM &vm;
 
-		uint8_t ssourcebuf[bufferLength];
-		uint8_t ssourceptr = 0;
-		uint8_t ssourceactive = 0;
-		int16_t ssourcecursample = 0;
-	};
+    uint8_t ssourcebuf[bufferLength];
+    uint8_t ssourceptr = 0;
+    uint8_t ssourceactive = 0;
+    int16_t ssourcecursample = 0;
+  };
 }
-

@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ typedef uint32_t size_t;
 typedef unsigned int size_t;
 #endif
 
-typedef struct {
-    uint8_t r, g, b;
+typedef struct
+{
+  uint8_t r, g, b;
 } rgb_t;

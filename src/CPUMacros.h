@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -55,37 +55,37 @@
 #define regbh 7
 #endif
 
-#define StepIP(x)	ip += x
-#define getmem8(x, y)	vm.memory.readByte(segbase(x) + (y))
-#define getmem16(x, y)	vm.memory.readWord(segbase(x) + (y))
-#define putmem8(x, y, z)	vm.memory.writeByte(segbase(x) + (y), z)
-#define putmem16(x, y, z)	vm.memory.writeWord(segbase(x) + (y), z)
-#define signext(value)	(int16_t)(int8_t)(value)
-#define signext32(value)	(int32_t)(int16_t)(value)
-#define getreg16(regid)	regs.wordregs[regid]
-#define getreg8(regid)	regs.byteregs[byteregtable[regid]]
-#define putreg16(regid, writeval)	regs.wordregs[regid] = writeval
-#define putreg8(regid, writeval)	regs.byteregs[byteregtable[regid]] = writeval
-#define getsegreg(regid)	segregs[regid]
-#define putsegreg(regid, writeval)	segregs[regid] = writeval
-#define segbase(x)	((uint32_t) x << 4)
-#define segaddr(seg, x) (segbase(seg) + ((x) & 0xFFFF))
+#define StepIP(x) ip += x
+#define getmem8(x, y) vm.memory.readByte(segbase(x) + (y))
+#define getmem16(x, y) vm.memory.readWord(segbase(x) + (y))
+#define putmem8(x, y, z) vm.memory.writeByte(segbase(x) + (y), z)
+#define putmem16(x, y, z) vm.memory.writeWord(segbase(x) + (y), z)
+#define signext(value) (int16_t)(int8_t)(value)
+#define signext32(value) (int32_t)(int16_t)(value)
+#define getreg16(regid) regs.wordregs[regid]
+#define getreg8(regid) regs.byteregs[byteregtable[regid]]
+#define putreg16(regid, writeval) regs.wordregs[regid] = writeval
+#define putreg8(regid, writeval) regs.byteregs[byteregtable[regid]] = writeval
+#define getsegreg(regid) segregs[regid]
+#define putsegreg(regid, writeval) segregs[regid] = writeval
+#define segbase(x) ((uint32_t)x << 4)
+#define segaddr(seg, x) (segbase(seg) + ((x)&0xFFFF))
 
-#define makeflagsword() \
-	( \
-	2 | (uint16_t) cf | ((uint16_t) pf << 2) | ((uint16_t) af << 4) | ((uint16_t) zf << 6) | ((uint16_t) sf << 7) | \
-	((uint16_t) tf << 8) | ((uint16_t) ifl << 9) | ((uint16_t) df << 10) | ((uint16_t) of << 11) \
-	)
+#define makeflagsword()                                                                                          \
+  (                                                                                                              \
+      2 | (uint16_t)cf | ((uint16_t)pf << 2) | ((uint16_t)af << 4) | ((uint16_t)zf << 6) | ((uint16_t)sf << 7) | \
+      ((uint16_t)tf << 8) | ((uint16_t)ifl << 9) | ((uint16_t)df << 10) | ((uint16_t)of << 11))
 
-#define decodeflagsword(x) { \
-	temp16 = x; \
-	cf = temp16 & 1; \
-	pf = (temp16 >> 2) & 1; \
-	af = (temp16 >> 4) & 1; \
-	zf = (temp16 >> 6) & 1; \
-	sf = (temp16 >> 7) & 1; \
-	tf = (temp16 >> 8) & 1; \
-	ifl = (temp16 >> 9) & 1; \
-	df = (temp16 >> 10) & 1; \
-	of = (temp16 >> 11) & 1; \
-	}
+#define decodeflagsword(x)   \
+  {                          \
+    temp16 = x;              \
+    cf = temp16 & 1;         \
+    pf = (temp16 >> 2) & 1;  \
+    af = (temp16 >> 4) & 1;  \
+    zf = (temp16 >> 6) & 1;  \
+    sf = (temp16 >> 7) & 1;  \
+    tf = (temp16 >> 8) & 1;  \
+    ifl = (temp16 >> 9) & 1; \
+    df = (temp16 >> 10) & 1; \
+    of = (temp16 >> 11) & 1; \
+  }

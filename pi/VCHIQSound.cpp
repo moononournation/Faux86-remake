@@ -23,28 +23,27 @@
 
 using namespace Faux86;
 
-VCHIQSound::VCHIQSound (Audio& inAudio, CVCHIQDevice *pVCHIQDevice, unsigned nSampleRate)
-	: CVCHIQSoundBaseDevice(pVCHIQDevice, nSampleRate, ChunkSize)
-	, audio(inAudio)
+VCHIQSound::VCHIQSound(Audio &inAudio, CVCHIQDevice *pVCHIQDevice, unsigned nSampleRate)
+    : CVCHIQSoundBaseDevice(pVCHIQDevice, nSampleRate, ChunkSize), audio(inAudio)
 {
 }
 
-unsigned VCHIQSound::GetChunk (s16 *pBuffer, unsigned nChunkSize)
+unsigned VCHIQSound::GetChunk(s16 *pBuffer, unsigned nChunkSize)
 {
-	uint8_t generatedAudio[ChunkSize / 2];
-	int numSamples = (int) nChunkSize / 2;
-	audio.fillAudioBuffer(generatedAudio, numSamples);
-	
-	for(int n = 0; n < numSamples; n++)
-	{
-		unsigned sample = generatedAudio[n];
-		
-		sample -= 128;			// unsigned (8 bit) -> signed (16 bit)
-		sample *= 256;
-		
-		pBuffer[n * 2] = sample;
-		pBuffer[n * 2 + 1] = sample;
-	}
-	
-	return nChunkSize;
+  uint8_t generatedAudio[ChunkSize / 2];
+  int numSamples = (int)nChunkSize / 2;
+  audio.fillAudioBuffer(generatedAudio, numSamples);
+
+  for (int n = 0; n < numSamples; n++)
+  {
+    unsigned sample = generatedAudio[n];
+
+    sample -= 128; // unsigned (8 bit) -> signed (16 bit)
+    sample *= 256;
+
+    pBuffer[n * 2] = sample;
+    pBuffer[n * 2 + 1] = sample;
+  }
+
+  return nChunkSize;
 }

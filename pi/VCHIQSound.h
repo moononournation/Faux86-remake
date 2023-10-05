@@ -27,20 +27,20 @@
 
 namespace Faux86
 {
-	class Audio;
-	
-	class VCHIQSound : public CVCHIQSoundBaseDevice
-	{
-	public:
-		VCHIQSound (Audio& inAudio, CVCHIQDevice *pVCHIQDevice, unsigned nSampleRate);
+  class Audio;
 
-	protected:
-		//static constexpr unsigned ChunkSize = 2048;
-		static constexpr unsigned ChunkSize =	(384 * 10);	// number of samples, written to sound device at once
-    //static constexpr unsigned ChunkSize = 4096;
-		
-		virtual unsigned GetChunk (s16 *pBuffer, unsigned nChunkSize) override;
+  class VCHIQSound : public CVCHIQSoundBaseDevice
+  {
+  public:
+    VCHIQSound(Audio &inAudio, CVCHIQDevice *pVCHIQDevice, unsigned nSampleRate);
 
-		Audio& audio;
-	};
+  protected:
+    // static constexpr unsigned ChunkSize = 2048;
+    static constexpr unsigned ChunkSize = (384 * 10); // number of samples, written to sound device at once
+    // static constexpr unsigned ChunkSize = 4096;
+
+    virtual unsigned GetChunk(s16 *pBuffer, unsigned nChunkSize) override;
+
+    Audio &audio;
+  };
 }

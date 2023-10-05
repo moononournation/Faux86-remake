@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -22,8 +22,8 @@
 */
 
 /*
-	Intel 8255 Programmable Peripheral Interface (PPI)
-	This is not complete.
+  Intel 8255 Programmable Peripheral Interface (PPI)
+  This is not complete.
 */
 
 #pragma once
@@ -32,34 +32,30 @@
 #include "Types.h"
 #include "Ports.h"
 
-//#include <stdint.h>
-
+// #include <stdint.h>
 
 namespace Faux86
 {
-	class VM;
+  class VM;
 
-	// Intel 8255 Programmable Peripheral Interface (PPI)
-	class PPI : public PortInterface
-	{
-	public:
-		PPI(VM& inVM);
-		
-		uint8_t sw2;
-		uint8_t portA;
-		uint8_t portB;
-		uint8_t portC;
+  // Intel 8255 Programmable Peripheral Interface (PPI)
+  class PPI : public PortInterface
+  {
+  public:
+    PPI(VM &inVM);
 
-		//void tick();
-		virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
-		virtual bool portReadHandler(uint16_t portnum, uint8_t& outValue) override;
-		void dramRefreshToggle(void);	
+    uint8_t sw2;
+    uint8_t portA;
+    uint8_t portB;
+    uint8_t portC;
 
-	private:
+    // void tick();
+    virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
+    virtual bool portReadHandler(uint16_t portnum, uint8_t &outValue) override;
+    void dramRefreshToggle(void);
 
-		VM& vm;
-	};
+  private:
+    VM &vm;
+  };
 
 }
-
-

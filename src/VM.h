@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -45,58 +45,57 @@
 #include "TaskManager.h"
 
 #ifndef BUILD_STRING
-	#error BUILD_STRING not defined. Add #include "Config.h" to this unit.
+#error BUILD_STRING not defined. Add #include "Config.h" to this unit.
 #endif
 
 namespace Faux86
 {
-	class Debugger;
+  class Debugger;
 
-	class VM
-	{
-	public:
-		VM(Config& inConfig);
-		~VM();
+  class VM
+  {
+  public:
+    VM(Config &inConfig);
+    ~VM();
 
-		bool init();
-		bool simulate();
+    bool init();
+    bool simulate();
 
-		Config config;
+    Config config;
 
-		CPU cpu;
-		Memory memory;
-		Ports ports;
-		PIC pic;
-		PIT pit;
-		PPI ppi;
-		DMA dma;
-		DriveManager drives;
+    CPU cpu;
+    Memory memory;
+    Ports ports;
+    PIC pic;
+    PIT pit;
+    PPI ppi;
+    DMA dma;
+    DriveManager drives;
 
-		Video video;
-		Audio audio;
+    Video video;
+    Audio audio;
 
-		Adlib adlib;
-		SoundBlaster blaster;
-		DisneySoundSource soundSource;
-		PCSpeaker pcSpeaker;
+    Adlib adlib;
+    SoundBlaster blaster;
+    DisneySoundSource soundSource;
+    PCSpeaker pcSpeaker;
 
-		UART uartcom1;
-		SerialMouse mouse;
+    UART uartcom1;
+    SerialMouse mouse;
 
-		Renderer renderer;
-		InputManager input;
-		TimingScheduler timing;
-		TaskManager taskManager;
+    Renderer renderer;
+    InputManager input;
+    TimingScheduler timing;
+    TaskManager taskManager;
 
-		Debugger* debugger = nullptr;
+    Debugger *debugger = nullptr;
 
-		bool running;
+    bool running;
 
-	private:
-
-//		bool running;
-	};
+  private:
+    //		bool running;
+  };
 }
 
 // TEMPORARY
-//extern Faux86::VM vm;
+// extern Faux86::VM vm;

@@ -27,41 +27,41 @@
 
 namespace Faux86
 {
-	class CircleDeviceDisk : public DiskInterface
-	{
-	private:
-		CDevice* device;
-		uint64_t seekPos;
+  class CircleDeviceDisk : public DiskInterface
+  {
+  private:
+    CDevice *device;
+    uint64_t seekPos;
 
-	public:
-		CircleDeviceDisk(CDevice* inDevice) : device(inDevice) {}
-		
-		virtual int read (uint8_t *buffer, unsigned count) override 
-		{
-			device->Seek(seekPos);
-			int result = device->Read(buffer, count);
-			seekPos += count;
-			return result;
-		}
-		virtual int write (const uint8_t *buffer, unsigned count) override
-		{
-			device->Seek(seekPos);
-			int result = device->Write(buffer, count);
-			seekPos += count;
-			return result;
-		}
-		virtual uint64_t seek (uint64_t offset) override
-		{
-			seekPos = offset;
-			return device->Seek(seekPos);
-		}
-		virtual uint64_t getSize() override
-		{
-			return 40000000;
-		}
-		virtual bool isValid() override
-		{
-			return true;
-		}
-	};
+  public:
+    CircleDeviceDisk(CDevice *inDevice) : device(inDevice) {}
+
+    virtual int read(uint8_t *buffer, unsigned count) override
+    {
+      device->Seek(seekPos);
+      int result = device->Read(buffer, count);
+      seekPos += count;
+      return result;
+    }
+    virtual int write(const uint8_t *buffer, unsigned count) override
+    {
+      device->Seek(seekPos);
+      int result = device->Write(buffer, count);
+      seekPos += count;
+      return result;
+    }
+    virtual uint64_t seek(uint64_t offset) override
+    {
+      seekPos = offset;
+      return device->Seek(seekPos);
+    }
+    virtual uint64_t getSize() override
+    {
+      return 40000000;
+    }
+    virtual bool isValid() override
+    {
+      return true;
+    }
+  };
 }

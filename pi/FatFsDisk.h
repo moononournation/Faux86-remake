@@ -25,54 +25,54 @@
 
 namespace Faux86
 {
-	class FatFsDisk : public DiskInterface
-	{
-	private:
-		FIL file;
-		FatFsDisk(FIL& inFile) : file(inFile) {}
+  class FatFsDisk : public DiskInterface
+  {
+  private:
+    FIL file;
+    FatFsDisk(FIL &inFile) : file(inFile) {}
 
-	public:
-		static FatFsDisk* open(const char* path)
-		{
-			FIL file;
-			
-			log(Log, "Attempting to open %s for read", path);
-						
-			if(f_open (&file, path, FA_READ | FA_OPEN_EXISTING) == FR_OK)
-			{
-				log(Log, "Success!");
-				return new FatFsDisk(file);
-			}
-			
-			log(Log, "Could not open file %s", path);
-			
-			return nullptr;
-		}
-		
-		virtual int read (uint8_t *buffer, unsigned count) override
-		{
-			unsigned bytesRead;
-			f_read(&file, buffer, count, &bytesRead);
-			return bytesRead;
-		}
-		virtual int write (const uint8_t *buffer, unsigned count) override
-		{
-			unsigned bytesWritten;
-			f_write(&file, buffer, count, &bytesWritten);
-			return bytesWritten;
-		}
-		virtual uint64_t seek (uint64_t offset) override
-		{
-			f_lseek(&file, offset);
-			return offset;
-		}
-		virtual uint64_t getSize() override
-		{
-			return f_size(&file);
-		}
-		virtual bool isValid() override
-		{
-			return true;
-		}
-	};
+  public:
+    static FatFsDisk *open(const char *path)
+    {
+      FIL file;
+
+      log(Log, "Attempting to open %s for read", path);
+
+      if (f_open(&file, path, FA_READ | FA_OPEN_EXISTING) == FR_OK)
+      {
+        log(Log, "Success!");
+        return new FatFsDisk(file);
+      }
+
+      log(Log, "Could not open file %s", path);
+
+      return nullptr;
+    }
+
+    virtual int read(uint8_t *buffer, unsigned count) override
+    {
+      unsigned bytesRead;
+      f_read(&file, buffer, count, &bytesRead);
+      return bytesRead;
+    }
+    virtual int write(const uint8_t *buffer, unsigned count) override
+    {
+      unsigned bytesWritten;
+      f_write(&file, buffer, count, &bytesWritten);
+      return bytesWritten;
+    }
+    virtual uint64_t seek(uint64_t offset) override
+    {
+      f_lseek(&file, offset);
+      return offset;
+    }
+    virtual uint64_t getSize() override
+    {
+      return f_size(&file);
+    }
+    virtual bool isValid() override
+    {
+      return true;
+    }
+  };
 }

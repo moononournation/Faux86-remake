@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -27,76 +27,76 @@
 #include "CPU.h"
 #include "Video.h"
 
-//#define DEBUG_INPUT
+// #define DEBUG_INPUT
 
 using namespace Faux86;
 
-void InputManager::tick() 
+void InputManager::tick()
 {
-	if (!keyboardWaitAck && keyboardBufferSize > 0)
-	{
-		vm.ports.portram[0x60] = keyboardBuffer[keyboardBufferPos];
-		vm.ports.portram[0x64] |= 2;
-		vm.pic.doirq(1);
-		keyboardWaitAck = true;
+  if (!keyboardWaitAck && keyboardBufferSize > 0)
+  {
+    vm.ports.portram[0x60] = keyboardBuffer[keyboardBufferPos];
+    vm.ports.portram[0x64] |= 2;
+    vm.pic.doirq(1);
+    keyboardWaitAck = true;
 
-		keyboardBufferPos++;
-		keyboardBufferSize--;
-		if (keyboardBufferPos >= MaxKeyboardBufferSize)
-		{
-			keyboardBufferPos = 0;
-		}
-	}
+    keyboardBufferPos++;
+    keyboardBufferSize--;
+    if (keyboardBufferPos >= MaxKeyboardBufferSize)
+    {
+      keyboardBufferPos = 0;
+    }
+  }
 }
 
 void InputManager::handleKeyDown(uint16_t scancode)
 {
-	uint8_t extended = (uint8_t)(scancode >> 8);
-	
-	#ifdef DEBUG_INPUT
-	log(Log,"[INPUTMANAGER::handleKeyDown] scancode:%u extended:%u", scancode, extended);
-	#endif
-	
-	//Not sure of this extended code 244 but causes
-	//repeated arrow keys so disabled for now
-	//if (extended)
-	//{
-	//	queueData(extended);
-	//}
+  uint8_t extended = (uint8_t)(scancode >> 8);
 
-	queueData((uint8_t)scancode);
+#ifdef DEBUG_INPUT
+  log(Log, "[INPUTMANAGER::handleKeyDown] scancode:%u extended:%u", scancode, extended);
+#endif
+
+  // Not sure of this extended code 244 but causes
+  // repeated arrow keys so disabled for now
+  // if (extended)
+  //{
+  //	queueData(extended);
+  // }
+
+  queueData((uint8_t)scancode);
 }
 
 void InputManager::handleKeyUp(uint16_t scancode)
 {
-	uint8_t extended = (uint8_t)(scancode >> 8);
-	
-	#ifdef DEBUG_INPUT
-	log(Log,"[INPUTMANAGER::handleKeyUp] scancode:%u extended:%u", scancode, extended);
-	#endif
-	
-	//Not sure of this extended code 224 but causes
-	//repeated arrow keys so disabled for now
-	//if (extended)
-	//{
-	//	queueData(extended);
-	//}
+  uint8_t extended = (uint8_t)(scancode >> 8);
 
-	queueData((uint8_t)(scancode) | 0x80);
+#ifdef DEBUG_INPUT
+  log(Log, "[INPUTMANAGER::handleKeyUp] scancode:%u extended:%u", scancode, extended);
+#endif
+
+  // Not sure of this extended code 224 but causes
+  // repeated arrow keys so disabled for now
+  // if (extended)
+  //{
+  //	queueData(extended);
+  // }
+
+  queueData((uint8_t)(scancode) | 0x80);
 }
 
 void InputManager::queueData(uint8_t data)
 {
-	if (keyboardBufferSize < MaxKeyboardBufferSize)
-	{
-		int writePos = (keyboardBufferPos + keyboardBufferSize) % MaxKeyboardBufferSize;
-		keyboardBuffer[writePos] = data;
-		keyboardBufferSize++;
-	}
+  if (keyboardBufferSize < MaxKeyboardBufferSize)
+  {
+    int writePos = (keyboardBufferPos + keyboardBufferSize) % MaxKeyboardBufferSize;
+    keyboardBuffer[writePos] = data;
+    keyboardBufferSize++;
+  }
 }
 
-InputManager::InputManager(VM& inVM)
-	: vm(inVM)
+InputManager::InputManager(VM &inVM)
+    : vm(inVM)
 {
-	log(Log,"[INPUTMANAGER] Constructed");
+  log(Log, "[INPUTMANAGER] Constructed");
 }

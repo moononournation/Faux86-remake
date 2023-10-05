@@ -3,7 +3,7 @@
   Copyright (C)2018 James Howard
   Based on Fake86
   Copyright (C)2010-2013 Mike Chambers
-  
+
   Contributions and Updates (c)2023 Curtis aka ArnoldUK
 
   This program is free software; you can redistribute it and/or
@@ -29,34 +29,33 @@
 
 namespace Faux86
 {
-	class VM;
+  class VM;
 
-	class PIC : public PortInterface
-	{
-	public:
-		PIC(VM& inVM);
+  class PIC : public PortInterface
+  {
+  public:
+    PIC(VM &inVM);
 
-		void doirq(uint8_t irqnum);
-		uint8_t	nextintr();
-		bool irqpending();
+    void doirq(uint8_t irqnum);
+    uint8_t nextintr();
+    bool irqpending();
 
-		uint8_t imr;		//mask register
-		uint8_t irr;		//request register
-		uint8_t isr;		//service register
-		uint8_t icwstep;	//used during initialization to keep track of which ICW we're at
-		uint8_t icw[5] = {0};
-		uint8_t ocw[5] = {0};
-		uint8_t intoffset;	//interrupt vector offset
-		uint8_t priority;	//which IRQ has highest priority
-		uint8_t autoeoi;	//automatic EOI mode
-		uint8_t readmode;	//remember what to return on read register from OCW3
-		uint8_t enabled;
+    uint8_t imr;     // mask register
+    uint8_t irr;     // request register
+    uint8_t isr;     // service register
+    uint8_t icwstep; // used during initialization to keep track of which ICW we're at
+    uint8_t icw[5] = {0};
+    uint8_t ocw[5] = {0};
+    uint8_t intoffset; // interrupt vector offset
+    uint8_t priority;  // which IRQ has highest priority
+    uint8_t autoeoi;   // automatic EOI mode
+    uint8_t readmode;  // remember what to return on read register from OCW3
+    uint8_t enabled;
 
-		virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
-		virtual bool portReadHandler(uint16_t portnum, uint8_t& outValue) override;
+    virtual bool portWriteHandler(uint16_t portnum, uint8_t value) override;
+    virtual bool portReadHandler(uint16_t portnum, uint8_t &outValue) override;
 
-	private:
-
-		VM& vm;
-	};
+  private:
+    VM &vm;
+  };
 }
