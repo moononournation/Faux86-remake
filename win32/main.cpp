@@ -104,10 +104,12 @@ int main(int argc, char *argv[])
   // for (size_t n = 0; n < sizeof(Faux86::VM); n++)	allocSpace[n] = 0xff;
   // Faux86::VM* vm86 = new (allocSpace) Faux86::VM(vmConfig);
 
+  uint16_t *video_framebuffer = (uint16_t *)calloc(VGA_FRAMEBUFFER_WIDTH * VGA_FRAMEBUFFER_HEIGHT, sizeof(uint16_t));
+
   // Faux86::VM* vm86 = new Faux86::VM(vmConfig);
   vm86 = new Faux86::VM(vmConfig);
 
-  if (vm86->init())
+  if (vm86->init(video_framebuffer))
   {
     // hostInterface.init(vmConfig.resw, vmConfig.resh, vmConfig.enableMenu);
     hostInterface.init(vm86);

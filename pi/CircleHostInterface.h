@@ -49,11 +49,7 @@ namespace Faux86
     virtual RenderSurface *getSurface() override;
     virtual void setPalette(Palette *palette) override;
 // virtual void present() override;
-#if (DEPTH == 16)
     virtual void blit(uint16_t *pixels, int w, int h, int stride) override;
-#else
-    virtual void blit(uint32_t *pixels, int w, int h, int stride) override;
-#endif
 
     CBcmFrameBuffer *frameBuffer = nullptr;
 

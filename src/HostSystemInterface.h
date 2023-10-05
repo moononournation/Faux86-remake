@@ -64,11 +64,7 @@ namespace Faux86
 
     // virtual void present() {}
 
-#if defined(ARDUINO) || (VIDEO_FRAMEBUFFER_DEPTH == 16)
     virtual void blit(uint16_t *pixels, int w, int h, int stride) = 0;
-#else
-    virtual void blit(uint32_t *pixels, int w, int h, int stride) = 0;
-#endif
 
     // virtual uint32_t getWidth() = 0;
     // virtual uint32_t getHeight() = 0;

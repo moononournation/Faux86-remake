@@ -136,7 +136,7 @@ VM::VM(Config &inConfig)
   log(Log, "[VM] Constructed");
 }
 
-bool VM::init()
+bool VM::init(uint16_t *video_framebuffer)
 {
   log(Log, "[VM] Initialized");
 
@@ -209,7 +209,7 @@ bool VM::init()
     // debugger->addDataBreakpoint(0x487);
   }
 
-  video.init();
+  video.init(video_framebuffer);
 
   drives.insertDisk(DRIVE_A, config.diskDriveA);
   drives.insertDisk(DRIVE_B, config.diskDriveB);

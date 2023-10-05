@@ -32,14 +32,9 @@
 
 #define VGA_RAMBANK_SIZE 65536
 #define VGA_FRAMEBUFFER_WIDTH 800  // 1024
-#define VGA_FRAMEBUFFER_HEIGHT 800 // 1024
+#define VGA_FRAMEBUFFER_HEIGHT 600 // 1024
 
-#if defined(ARDUINO) || (VIDEO_FRAMEBUFFER_DEPTH == 16)
 #define VGA_FRAMEBUFFER_STRIDE VGA_FRAMEBUFFER_WIDTH * 2 // sizeof(uint16_t)
-#else
-#define VGA_FRAMEBUFFER_STRIDE VGA_FRAMEBUFFER_WIDTH * 4 // sizeof(uint32_t)
-#endif
-
 #define VGA_FRAMEBUFFER_SIZE VGA_FRAMEBUFFER_WIDTH *VGA_FRAMEBUFFER_HEIGHT
 
 #define VGA_DAC_MODE_READ 0x00
@@ -114,7 +109,7 @@ namespace Faux86
     Video(VM &inVM);
     ~Video(void);
 
-    uint8_t init(void);
+    uint8_t init(uint16_t *video_framebuffer);
 
     // static constexpr int VRAMSize = 0x40000;
     // uint8_t VRAM[VRAMSize];
@@ -163,13 +158,8 @@ namespace Faux86
     volatile uint32_t vga_hblankTimer, vga_hblankEndTimer, vga_drawTimer;
 
   private:
-#if defined(ARDUINO) || (VIDEO_FRAMEBUFFER_DEPTH == 16)
     uint16_t rgb(uint16_t r, uint16_t g, uint16_t b);
     uint16_t vga_color(uint16_t c);
-#else
-    uint32_t rgb(uint32_t r, uint32_t g, uint32_t b);
-    uint32_t vga_color(uint32_t c);
-#endif
     uint8_t vga_dorotate(uint8_t v);
 
     VM &vm;

@@ -58,7 +58,7 @@ namespace Faux86
     VM(Config &inConfig);
     ~VM();
 
-    bool init();
+    bool init(uint16_t *video_framebuffer);
     bool simulate();
 
     Config config;

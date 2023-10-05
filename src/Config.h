@@ -177,19 +177,7 @@
 #define VIDEO_FRAMEBUFFER_WIDTH 800
 #define VIDEO_FRAMEBUFFER_HEIGHT 800
 
-#ifndef DEPTH
-#define DEPTH 16
-#endif
-
-#if defined(ARDUINO) || (DEPTH == 16)
 #define VIDEO_FRAMEBUFFER_DEPTH 16
-#elif (DEPTH == 32)
-#define VIDEO_FRAMEBUFFER_DEPTH 32
-#elif (DEPTH == 8)
-#define VIDEO_FRAMEBUFFER_DEPTH 8
-#else
-#define VIDEO_FRAMEBUFFER_DEPTH 16
-#endif
 
 // Settings file will override this.
 #define RENDER_QUALITY_NEAREST 0

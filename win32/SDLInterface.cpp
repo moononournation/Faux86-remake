@@ -45,11 +45,7 @@ using namespace Faux86;
 // #define SDL_PIXEL_FORMAT		SDL_PIXELFORMAT_RGB24
 // #define SDL_PIXEL_FORMAT		SDL_PIXELFORMAT_ARGB8888
 
-#if defined(ARDUINO) || (VIDEO_FRAMEBUFFER_DEPTH == 16)
 #define SDL_PIXEL_FORMAT SDL_PIXELFORMAT_RGB565
-#else
-#define SDL_PIXEL_FORMAT SDL_PIXELFORMAT_RGB888
-#endif
 
 bool sdlconsole_ctrl = 0;
 bool sdlconsole_alt = 0;
@@ -219,11 +215,7 @@ void SDLFrameBufferInterface::resize(uint32_t desiredWidth, uint32_t desiredHeig
 	screenTexture = nullptr;
 	screenPixels = nullptr;
 
-#if defined(ARDUINO) || (VIDEO_FRAMEBUFFER_DEPTH == 16)
 	screenPixels = SDL_CreateRGBSurfaceWithFormat(0, desiredWidth, desiredHeight, 16, SDL_PIXEL_FORMAT);
-#else
-	screenPixels = SDL_CreateRGBSurfaceWithFormat(0, desiredWidth, desiredHeight, 32, SDL_PIXEL_FORMAT);
-#endif
 
 	// appRenderer = SDL_GetRenderer(sdlWindow);
 	appRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
@@ -284,11 +276,7 @@ void SDLFrameBufferInterface::present()
 	SDL_RenderPresent(appRenderer);
 }
 */
-#if defined(ARDUINO) || (VIDEO_FRAMEBUFFER_DEPTH == 16)
 void SDLFrameBufferInterface::blit(uint16_t *pixels, int w, int h, int stride)
-#else
-void SDLFrameBufferInterface::blit(uint32_t *pixels, int w, int h, int stride)
-#endif
 {
 
 	// log(LogVerbose, "[SDL] FrameBufferInterface::blit %d x %d x %d", w, h, stride);
@@ -327,13 +315,8 @@ void SDLFrameBufferInterface::blit(uint32_t *pixels, int w, int h, int stride)
 	// SDL_Surface* screenPixels = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXEL_FORMAT);
 	// SDL_FillRect(screenPixels, NULL, 0); //clear pixels to black background
 
-#if defined(ARDUINO) || (VIDEO_FRAMEBUFFER_DEPTH == 16)
 	if (screenPixels == nullptr)
 		screenPixels = SDL_CreateRGBSurfaceWithFormat(0, w, h, 16, SDL_PIXEL_FORMAT);
-#else
-	if (screenPixels == nullptr)
-		screenPixels = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXEL_FORMAT);
-#endif
 
 	// SDL_FillRect(screenPixels, NULL, SDL_MapRGB(screenPixels->format, 0, 0, 100));
 	// SDL_SetColorKey(screenPixels, SDL_TRUE, SDL_MapRGB(screenPixels->format, 0, 0, 255));

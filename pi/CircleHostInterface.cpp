@@ -37,12 +37,7 @@
 
 // #pragma GCC optimize("O2,inline")
 
-#if (DEPTH == 16)
 extern uint16_t *vga_framebuffer;
-#else
-extern uint32_t vga_framebuffer[800][800];
-#endif
-
 static unsigned uBlitLoops = 0;
 static unsigned uChipsetloops = 0;
 static unsigned uTimeStart, uTimeEnd = 0;
@@ -218,11 +213,7 @@ static unsigned randomNumber(void)
   return (g_seed >> 16) & 0x7fff;
 }
 
-#if (DEPTH == 16)
 void CircleFrameBufferInterface::blit(uint16_t *pixels, int w, int h, int stride)
-#else
-void CircleFrameBufferInterface::blit(uint32_t *pixels, int w, int h, int stride)
-#endif
 {
   /*
   renderer.fb->setPalette(vm.video.getCurrentPalette());
@@ -268,22 +259,8 @@ void CircleFrameBufferInterface::blit(uint32_t *pixels, int w, int h, int stride
   { // 400
     for (uint16_t x = 0; x < w; x++)
     { // 640
-#if (DEPTH == 16)
       sColor = vga_framebuffer[y * VGA_FRAMEBUFFER_WIDTH + x];
       pScreenBuffer[x + (y * sw)] = sColor;
-#else
-      // vidptr = y * 640 + x;
-      // sColor = pixels[y+x]; //RGB32toRGB16(pixels[y][x]);
-      // sColor = COLOR16(cRed, cGreen, cBlue);
-      // sColor = RGB32toRGB16(vga_framebuffer[y][x]);
-      // sColor = vga_framebuffer[y][x];
-      sColor = RGB32toRGB16(vga_framebuffer[y][x]);
-      // sColor = VGAtoRGB(vga_framebuffer[y][x]);
-      // sColor = TScreenColor(vga_framebuffer[y][x]);
-      pScreenBuffer[x + (y * sw)] = sColor;
-// screen->SetPizel(x, y, sColor);
-// p2DGraphics->DrawPixel(x, y, sColor);
-#endif
     }
     // CScheduler::Get()->Yield();
   }

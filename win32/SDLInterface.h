@@ -58,11 +58,7 @@ namespace Faux86
 		virtual RenderSurface *getSurface() override;
 		virtual void setPalette(Palette *palette) override;
 // virtual void present() override;
-#if defined(ARDUINO) || (VIDEO_FRAMEBUFFER_DEPTH == 16)
 		virtual void blit(uint16_t *pixels, int w, int h, int stride) override;
-#else
-		virtual void blit(uint32_t *pixels, int w, int h, int stride) override;
-#endif
 
 		// void black_white_dither(SDL_Surface* s);
 		void SetColorEmulation(uint8_t _colormode);

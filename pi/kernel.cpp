@@ -336,11 +336,17 @@ boolean CKernel::Initialize(void)
 // vmConfig->monitorDisplay = 0;
 #endif
 
+    uint16_t *video_framebuffer = (uint16_t *)calloc(VGA_FRAMEBUFFER_WIDTH * VGA_FRAMEBUFFER_HEIGHT, sizeof(uint16_t));
+    if (!video_framebuffer)
+    {
+      log(Log, "Failed to allocate video_framebuffer");
+    }
+
     log(Log, "[KERNEL] Creating Virtual Machine");
     vm = new VM(*vmConfig);
 
     log(Log, "[KERNEL] Initializing Virtual Machine");
-    bOK = vm->init();
+    bOK = vm->init(video_framebuffer);
 
     log(Log, "[KERNEL] Initializing Host Interface");
     HostInterface->init(vm);
