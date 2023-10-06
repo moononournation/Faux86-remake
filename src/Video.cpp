@@ -504,7 +504,14 @@ uint16_t Video::rgb(uint16_t r, uint16_t g, uint16_t b)
 
 uint8_t Video::init(uint16_t *video_framebuffer)
 {
-  vga_framebuffer = video_framebuffer;
+  if (video_framebuffer)
+  {
+    vga_framebuffer = video_framebuffer;
+  }
+  else
+  {
+    vga_framebuffer = (uint16_t *)calloc(VGA_FRAMEBUFFER_WIDTH * VGA_FRAMEBUFFER_HEIGHT, sizeof(uint16_t));
+  }
 
   uint32_t x, y, i;
 

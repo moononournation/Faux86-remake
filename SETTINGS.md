@@ -58,7 +58,7 @@ delay=20
 
 # Set maximum Frame Buffer height for rendering.
 # Default is set for standard VGA modes. Do not change this if unsure.
-fbheight=800
+fbheight=600
 
 # Set maximum Frame Buffer width for rendering.
 # Default is set for standard VGA modes. Do not change this if unsure.

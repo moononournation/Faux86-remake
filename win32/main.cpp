@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
   // vmConfig.useOPL3 = true;
 
   // vmConfig.framebuffer.width = 800;
-  // vmConfig.framebuffer.height = 800;
+  // vmConfig.framebuffer.height = 600;
   // vmConfig.resw = 720;
   // vmConfig.resh = 400;
   // vmConfig.renderQuality = RENDER_QUALITY_LINEAR;
