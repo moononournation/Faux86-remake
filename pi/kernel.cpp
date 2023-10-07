@@ -340,7 +340,7 @@ boolean CKernel::Initialize(void)
     vm = new VM(*vmConfig);
 
     log(Log, "[KERNEL] Initializing Virtual Machine");
-    bOK = vm->init(NULL);
+    bOK = vm->init();
 
     log(Log, "[KERNEL] Initializing Host Interface");
     HostInterface->init(vm);

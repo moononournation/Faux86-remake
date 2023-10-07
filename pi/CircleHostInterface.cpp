@@ -37,7 +37,7 @@
 
 // #pragma GCC optimize("O2,inline")
 
-extern uint16_t *vga_framebuffer;
+uint16_t *vga_framebuffer;
 static unsigned uBlitLoops = 0;
 static unsigned uChipsetloops = 0;
 static unsigned uTimeStart, uTimeEnd = 0;
@@ -108,16 +108,17 @@ void CircleFrameBufferInterface::init(uint32_t desiredWidth, uint32_t desiredHei
   }
 // log(LogVerbose, "Cleared!");
 #else
-// frameBuffer =
-// frameBuffer = new CBcmFrameBuffer (desiredWidth, desiredHeight, 8);
-// frameBuffer = new CBcmFrameBuffer (desiredWidth, desiredHeight, 16);
-// frameBuffer->Initialize();
+  // frameBuffer =
+  // frameBuffer = new CBcmFrameBuffer (desiredWidth, desiredHeight, 8);
+  // frameBuffer = new CBcmFrameBuffer (desiredWidth, desiredHeight, 16);
+  // frameBuffer->Initialize();
 
-// surface = new RenderSurface();
-// surface->width = frameBuffer->GetWidth();
-// surface->height = frameBuffer->GetHeight();
-// surface->pitch = frameBuffer->GetPitch();
-// surface->pixels = (uint8_t*) frameBuffer->GetBuffer();
+  // surface = new RenderSurface();
+  // surface->width = frameBuffer->GetWidth();
+  // surface->height = frameBuffer->GetHeight();
+  // surface->pitch = frameBuffer->GetPitch();
+  // surface->pixels = (uint8_t*) frameBuffer->GetBuffer();
+  vga_framebuffer = (uint16_t *)calloc(VGA_FRAMEBUFFER_WIDTH * VGA_FRAMEBUFFER_HEIGHT, sizeof(uint16_t));
 #endif
 }
 
@@ -255,13 +256,14 @@ void CircleFrameBufferInterface::blit(uint16_t *pixels, int w, int h, int stride
   // uint32_t _pixel;
   // unsigned int red, green, blue;
   // int x, y;
+  uint16_t *src = vga_framebuffer;
+  uint16_t *dst = pScreenBuffer;
+  uint32_t w2 = w * 2;
   for (uint16_t y = 0; y < h; y++)
-  { // 400
-    for (uint16_t x = 0; x < w; x++)
-    { // 640
-      sColor = vga_framebuffer[y * VGA_FRAMEBUFFER_WIDTH + x];
-      pScreenBuffer[x + (y * sw)] = sColor;
-    }
+  {
+    memcpy(dst, src, w2);
+    src += VGA_FRAMEBUFFER_WIDTH;
+    dst += sw;
     // CScheduler::Get()->Yield();
   }
   // CScheduler::Get()->Yield();
