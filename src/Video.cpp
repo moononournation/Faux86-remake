@@ -76,7 +76,7 @@ static const uint8_t vga_gfxpal[2][2][4] = {
     {{0, 10, 12, 14}, // intense palettes
      {0, 11, 13, 15}}};
 
-uint16_t *vga_framebuffer;
+extern uint16_t *vga_framebuffer;
 
 // 4 banks of 64KB (It's actually 64K addresses on a 32-bit data bus on real VGA hardware)
 static uint8_t *vga_RAM[4] = {}; // 4 planes
@@ -502,17 +502,8 @@ uint16_t Video::rgb(uint16_t r, uint16_t g, uint16_t b)
 #endif
 }
 
-uint8_t Video::init(uint16_t *video_framebuffer)
+uint8_t Video::init()
 {
-  if (video_framebuffer)
-  {
-    vga_framebuffer = video_framebuffer;
-  }
-  else
-  {
-    vga_framebuffer = (uint16_t *)calloc(VGA_FRAMEBUFFER_WIDTH * VGA_FRAMEBUFFER_HEIGHT, sizeof(uint16_t));
-  }
-
   uint32_t x, y, i;
 
   log(Log, "[VIDEO] Initializing Video Device");

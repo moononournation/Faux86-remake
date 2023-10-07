@@ -109,7 +109,7 @@ namespace Faux86
     Video(VM &inVM);
     ~Video(void);
 
-    uint8_t init(uint16_t *video_framebuffer);
+    uint8_t init();
 
     // static constexpr int VRAMSize = 0x40000;
     // uint8_t VRAM[VRAMSize];
